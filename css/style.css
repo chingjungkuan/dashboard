@@ -842,7 +842,8 @@ main {
   cursor: pointer;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(0.6);
   cursor: pointer;
 }
@@ -872,8 +873,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* Job card */
 .card.type-job,
 .card.type-rental {
-  padding-top: 1.5rem;
-  align-self: start; /* 不跟同排最高的卡片等高，依內容決定高度 */
+  align-self: start;
+}
+
+.status-rental-unseen {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.status-rental-seen {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
 }
 
 /* icon 與公司名稱同行 */

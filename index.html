@@ -243,6 +243,15 @@
           <label class="form-label">看房日期
             <input type="date" class="form-input" id="form-rental-date">
           </label>
+          <label class="form-label">看房時間
+            <input type="time" class="form-input" id="form-rental-time">
+          </label>
+          <label class="form-label">狀態
+            <select class="form-input form-select" id="form-rental-status">
+              <option value="未看">未看</option>
+              <option value="已看">已看</option>
+            </select>
+          </label>
           <label class="form-label">備註
             <textarea class="form-input form-textarea" id="form-rental-notes" placeholder="任何補充資訊…"></textarea>
           </label>
@@ -813,18 +822,25 @@
       const buildRentalCard = (mod) => {
         const card = document.createElement('div');
         card.className = 'card custom-module-card type-rental'; card.dataset.id = mod.id; card.dataset.type = 'rental';
+        const sc = mod.status === '已看' ? 'seen' : 'unseen';
+        const dateTime = [mod.viewingDate, mod.viewingTime].filter(Boolean).join(' ');
         card.innerHTML = `
-          <div class="card-icon"><i data-lucide="home"></i></div>
           <div class="card-header">
-            <div>
-              <h2 class="card-title">${mod.name}</h2>
-              ${mod.address ? `<div class="card-subtitle"><i data-lucide="map-pin" size="14"></i><span>${mod.address}</span></div>` : ''}
+            <div class="job-header-main">
+              <div class="card-icon-inline"><i data-lucide="home"></i></div>
+              <div class="job-header-text">
+                <h2 class="card-title">${mod.name}</h2>
+                ${mod.address ? `<div class="card-subtitle"><i data-lucide="map-pin" size="14"></i><span>${mod.address}</span></div>` : ''}
+              </div>
             </div>
             <button class="btn-icon btn-edit-custom" title="編輯"><i data-lucide="pencil" size="15"></i></button>
           </div>
           ${mod.rent ? `<div class="rent-display"><span class="rent-amount">NT$ ${Number(mod.rent).toLocaleString()}</span><span class="rent-unit"> / 月</span></div>` : ''}
-          <div class="rental-details">
-            ${mod.viewingDate ? `<div class="detail-row"><i data-lucide="calendar" size="13"></i><span>看房：${mod.viewingDate}</span></div>` : ''}
+          <div class="job-meta">
+            <div class="job-meta-left">
+              <span class="status-badge status-rental-${sc}">${mod.status || '未看'}</span>
+              ${dateTime ? `<span class="meta-text"><i data-lucide="calendar" size="13"></i>${dateTime}</span>` : ''}
+            </div>
             ${mod.link ? `<a href="${mod.link}" target="_blank" rel="noopener" class="module-link"><i data-lucide="external-link" size="14"></i>房源連結</a>` : ''}
           </div>
           ${mod.notes ? `<p class="module-desc">${mod.notes}</p>` : ''}`;
@@ -1036,6 +1052,8 @@
           document.getElementById('form-rental-address').value = d?.address || '';
           document.getElementById('form-rental-rent').value = d?.rent || '';
           document.getElementById('form-rental-date').value = d?.viewingDate || '';
+          document.getElementById('form-rental-time').value = d?.viewingTime || '';
+          document.getElementById('form-rental-status').value = d?.status || '未看';
           document.getElementById('form-rental-notes').value = d?.notes || '';
         }
 
@@ -1135,6 +1153,8 @@
             address: document.getElementById('form-rental-address').value.trim(),
             rent: rent ? parseInt(rent) : null,
             viewingDate: document.getElementById('form-rental-date').value,
+            viewingTime: document.getElementById('form-rental-time').value,
+            status: document.getElementById('form-rental-status').value || '未看',
             notes: document.getElementById('form-rental-notes').value.trim()
           };
         }
