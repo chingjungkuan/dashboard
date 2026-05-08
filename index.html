@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Lucy's</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Lucy's">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <header>
+    <div class="brand">
+      <img src="apple-touch-icon.png" alt="Lucy icon" class="brand-img-icon">
+      Lucy Kuan
+    </div>
+  </header>
+
+  <main>
+    <div class="dashboard-header">
+      <h1 class="dashboard-title">My Plan</h1>
+    </div>
+    <!-- Toast 通知（fixed，不佔 layout） -->
+    <div id="toast" role="alert" aria-live="polite">
+      <span id="toast-msg"></span>
+    </div>
+
+    <!-- ── Dashboard 視圖 ── -->
+    <div class="dashboard-nav-grid" id="view-dashboard">
+      <div class="dash-card" data-target="gym">
+        <div class="dash-icon"><i data-lucide="dumbbell"></i></div>
+        <h3>健身房紀錄</h3>
+      </div>
+      <div class="dash-card" data-target="job">
+        <div class="dash-icon"><i data-lucide="briefcase"></i></div>
+        <h3>求職紀錄</h3>
+      </div>
+      <div class="dash-card" data-target="rental">
+        <div class="dash-icon"><i data-lucide="home"></i></div>
+        <h3>租屋紀錄</h3>
+      </div>
+      <!-- 動態自訂類別卡片由 JS 插入在此處 -->
+      <div class="dash-card dash-add" id="dash-btn-add">
+        <div class="dash-icon"><i data-lucide="plus"></i></div>
+        <h3>新增項目</h3>
+      </div>
+    </div>
+
+    <!-- ── 類別分類視圖 ── -->
+    <div id="view-category" style="display:none;">
+      <div class="category-header">
+        <button class="btn-icon" id="btn-back-dash" style="width:auto; padding:0 0.8rem; gap:0.4rem;">
+          <i data-lucide="arrow-left" size="18"></i>
+        </button>
+        <h2 id="category-title" class="category-title">紀錄</h2>
+        <button class="btn-delete-type" id="btn-delete-type" style="display:none;">
+          <i data-lucide="trash-2" size="14"></i>刪除列表
+        </button>
+      </div>
+
+      <div class="grid-container" id="grid-container">
+
+        <!-- ── 核心模組：健身會籍 ── -->
+        <div class="card type-gym" id="module-gym">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title"><span class="gym-num">#1</span></h2>
+              <div class="card-subtitle">
+                <i data-lucide="calendar" size="14"></i>
+                <span id="gym-sub-period">載入中...</span>
+              </div>
+            </div>
+            <button class="btn-icon" id="btn-gym-edit" title="編輯">
+              <i data-lucide="pencil" size="15"></i>
+            </button>
+          </div>
+
+          <!-- 檢視模式 -->
+          <div id="gym-view-mode">
+            <div class="progress-stats">
+              <div class="stat-block">
+                <span>已完成</span>
+                <div><span class="highlight" id="gym-used">0</span> / <span id="gym-total-stat">20</span></div>
+              </div>
+              <div class="stat-block" style="text-align:right;">
+                <span>剩餘次數</span>
+                <div><span class="highlight" id="gym-remaining">20</span></div>
+              </div>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" id="gym-progress-bar"></div>
+            </div>
+            <div class="calendar-widget">
+              <div class="calendar-controls">
+                <button id="cal-prev"><i data-lucide="chevron-left" size="18"></i></button>
+                <span class="month-year" id="cal-month-year">...</span>
+                <button id="cal-next"><i data-lucide="chevron-right" size="18"></i></button>
+              </div>
+              <div class="calendar-grid" id="cal-grid"></div>
+              <button class="btn-rest-days" id="btn-gym-rest-days">
+                <i data-lucide="ban" size="13"></i>無法運動日
+              </button>
+            </div>
+          </div>
+
+          <!-- 編輯模式 -->
+          <div id="gym-edit-mode" class="edit-panel" style="display:none;">
+            <div class="edit-form">
+              <label class="form-label">總次數
+                <input type="number" class="form-input" id="edit-gym-total" min="1" max="999">
+              </label>
+              <label class="form-label">起始日
+                <input type="date" class="form-input" id="edit-gym-start">
+              </label>
+              <label class="form-label">結束日
+                <input type="date" class="form-input" id="edit-gym-end">
+              </label>
+            </div>
+            <div class="edit-actions">
+              <button class="btn-cancel" id="btn-gym-cancel">取消</button>
+              <button class="btn-save" id="btn-gym-save">儲存</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 新增模組按鈕 ── -->
+        <div class="card card-empty type-add" id="btn-add-module">
+          <div class="icon-wrapper"><i data-lucide="plus"></i></div>
+          <h3>新增同類模組</h3>
+          <p style="font-size:0.85rem;text-align:center;">點擊在此類別中新增紀錄項目</p>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ══════════════════════════════════════
+       Modal 1：選擇模組類型
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-type">
+    <div class="modal modal-type-picker">
+      <div class="modal-header">
+        <h3 class="modal-title">選擇模組類型</h3>
+        <button class="btn-icon" id="btn-type-close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="type-grid">
+        <div class="type-card" data-type="gym">
+          <div class="type-card-icon"><i data-lucide="dumbbell"></i></div>
+          <h4>健身房紀錄</h4>
+          <p>追蹤會籍次數<br>與出勤日曆</p>
+        </div>
+        <div class="type-card" data-type="job">
+          <div class="type-card-icon"><i data-lucide="briefcase"></i></div>
+          <h4>求職追蹤紀錄</h4>
+          <p>記錄投遞狀況<br>與面試進度</p>
+        </div>
+        <div class="type-card" data-type="rental">
+          <div class="type-card-icon"><i data-lucide="home"></i></div>
+          <h4>找租屋紀錄</h4>
+          <p>整理看房資訊<br>與房源比較</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Modal 2：表單（依類型切換）
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-form">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-form-title">新增健身房紀錄</h3>
+        <button class="btn-icon" id="btn-form-close"><i data-lucide="x" size="18"></i></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- ── 健身房 欄位 ── -->
+        <div id="form-gym" class="form-section">
+          <label class="form-label">起始日 <span class="required">*</span>
+            <input type="date" class="form-input" id="form-gym-start">
+          </label>
+          <label class="form-label">結束日 <span class="required">*</span>
+            <input type="date" class="form-input" id="form-gym-end">
+          </label>
+          <label class="form-label">總次數 <span class="required">*</span>
+            <input type="number" class="form-input" id="form-gym-total" min="1" max="999" placeholder="例：20">
+          </label>
+        </div>
+
+        <!-- ── 求職追蹤 欄位 ── -->
+        <div id="form-job" class="form-section" style="display:none;">
+          <label class="form-label">公司名稱 <span class="required">*</span>
+            <input type="text" class="form-input" id="form-job-company" placeholder="例：Google">
+          </label>
+          <label class="form-label">職位名稱 <span class="required">*</span>
+            <input type="text" class="form-input" id="form-job-position" placeholder="例：Software Engineer">
+          </label>
+          <label class="form-label">職缺連結
+            <input type="url" class="form-input" id="form-job-link" placeholder="https://...">
+          </label>
+          <label class="form-label">投遞日期
+            <input type="date" class="form-input" id="form-job-date">
+          </label>
+          <label class="form-label">目前狀態
+            <select class="form-input form-select" id="form-job-status">
+              <option value="投遞中">投遞中</option>
+              <option value="面試中">面試中</option>
+              <option value="已錄取">已錄取</option>
+              <option value="已拒絕">已拒絕</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- ── 找租屋 欄位 ── -->
+        <div id="form-rental" class="form-section" style="display:none;">
+          <label class="form-label">物件名稱 <span class="required">*</span>
+            <input type="text" class="form-input" id="form-rental-name" placeholder="例：信義區公寓">
+          </label>
+          <label class="form-label">房源連結
+            <input type="url" class="form-input" id="form-rental-link" placeholder="https://...">
+          </label>
+          <label class="form-label">地址
+            <input type="text" class="form-input" id="form-rental-address" placeholder="例：台北市信義區...">
+          </label>
+          <label class="form-label">月租金（元）
+            <input type="number" class="form-input" id="form-rental-rent" placeholder="例：25000" min="0">
+          </label>
+          <label class="form-label">看房日期
+            <input type="date" class="form-input" id="form-rental-date">
+          </label>
+          <label class="form-label">備註
+            <textarea class="form-input form-textarea" id="form-rental-notes" placeholder="任何補充資訊…"></textarea>
+          </label>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-danger" id="btn-form-delete" style="display:none;">
+          <i data-lucide="trash-2" size="15"></i>刪除項目
+        </button>
+        <div class="modal-footer-actions">
+          <button class="btn-cancel" id="btn-form-cancel">取消</button>
+          <button class="btn-save" id="btn-form-save">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Modal 3：刪除二次確認（共用）
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay modal-overlay--confirm" id="modal-confirm">
+    <div class="modal modal-confirm">
+      <div class="modal-header">
+        <h3 class="modal-title">確認刪除？</h3>
+        <div class="confirm-icon"><i data-lucide="alert-triangle" size="20"></i></div>
+      </div>
+      <div class="modal-body">
+        <p class="confirm-msg" id="confirm-msg-text">確定要刪除此項目嗎？<br><strong>此操作無法復原。</strong></p>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;">
+        <div class="modal-footer-actions">
+          <button class="btn-cancel" id="btn-confirm-cancel">取消</button>
+          <button class="btn-delete-confirm" id="btn-confirm-delete">確定刪除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Modal 4：動態項目建構器
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-creator">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">建立新追蹤項目</h3>
+        <button class="btn-icon" id="btn-creator-close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body" style="gap:1.25rem;">
+        <label class="form-label">項目名稱 <span class="required">*</span>
+          <input type="text" class="form-input" id="creator-title" placeholder="例：跑步紀錄、閱讀日誌…">
+        </label>
+        <div class="metrics-section">
+          <div class="metrics-header" style="margin-bottom: 0.75rem;">
+            <span style="font-size:0.85rem;color:var(--text-muted);font-weight:500;">自訂追蹤指標</span>
+          </div>
+          <div id="metrics-list" class="metrics-list">
+            <!-- Dynamic metric rows injected here -->
+          </div>
+          <button class="btn-add-metric" id="btn-add-metric" type="button"
+            style="margin-top: 1rem; width: fit-content;">
+            <i data-lucide="plus" size="14"></i>新增指標
+          </button>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.75rem;">每個指標會成為紀錄時的一個填寫欄位</p>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;">
+        <div class="modal-footer-actions">
+          <button class="btn-cancel" id="btn-creator-cancel">取消</button>
+          <button class="btn-save" id="btn-creator-save">建立項目</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Modal 5：動態紀錄輸入
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-entry">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="entry-modal-title">新增紀錄</h3>
+        <button class="btn-icon" id="btn-entry-close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body" style="gap:1rem;">
+        <label class="form-label">紀錄日期
+          <input type="date" class="form-input" id="entry-date">
+        </label>
+        <div id="entry-fields-container" style="display:flex;flex-direction:column;gap:1rem;">
+          <!-- Dynamic metric fields injected by JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" id="btn-entry-delete" style="display:none;">
+          <i data-lucide="trash-2" size="15"></i>刪除紀錄
+        </button>
+        <div class="modal-footer-actions">
+          <button class="btn-cancel" id="btn-entry-cancel">取消</button>
+          <button class="btn-save" id="btn-entry-save">儲存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Modal 6：無法運動日
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-rest-days">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">無法運動日</h3>
+        <button class="btn-icon" id="btn-rest-close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body" style="gap:1.25rem;">
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:-0.25rem;">選取的日期在行事曆上會標記為灰色，無法打卡。</p>
+        <!-- 已選的休息日清單 -->
+        <div id="rest-days-chips" class="rest-days-chips">
+          <!-- chips injected by JS -->
+        </div>
+        <!-- 新增日期 -->
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <input type="date" class="form-input" id="rest-day-input" style="flex:1;">
+          <button class="btn-save" id="btn-rest-add" style="white-space:nowrap;padding:0.55rem 1rem;">新增</button>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;">
+        <div class="modal-footer-actions">
+          <button class="btn-cancel" id="btn-rest-cancel">取消</button>
+          <button class="btn-save" id="btn-rest-save">確認</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Script
+  ══════════════════════════════════════ -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+
+      // ── JSONBin.io ────────────────────────────────────
+      const JSONBIN_KEY = '$2a$10$TxsupRh7kHjCZb3VceR.xehsu2Ff0jG3.nz.c5mi4F67I9Z5qacmy';
+      const JSONBIN_BIN = '69eedda0856a68218977c12e';
+      const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN}`;
+
+      // ── Toast 通知 ────────────────────────────────
+      let _toastTimer = null;
+      const showToast = (msg, type = 'basic', duration = 2500) => {
+        const el = document.getElementById('toast');
+        el.className = `toast--${type} toast--show`;
+        document.getElementById('toast-msg').textContent = msg;
+        clearTimeout(_toastTimer);
+        if (duration > 0) _toastTimer = setTimeout(() => el.classList.remove('toast--show'), duration);
+      };
+      const hideToast = () => { clearTimeout(_toastTimer); document.getElementById('toast').classList.remove('toast--show'); };
+
+      // ── 工具 ─────────────────────────────────────────
+      const formatStr = (d) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+      // ── 預設資料 ──────────────────────────────────────
+      const today2m = new Date(); today2m.setMonth(today2m.getMonth() + 2); today2m.setDate(today2m.getDate() - 1);
+      const defaultData = {
+        gym: { total: 20, startDate: formatStr(new Date()), endDate: formatStr(today2m), records: [] },
+        customModules: [],
+        customTypes: [],
+        dynamicEntries: []
+      };
+
+      let appData = JSON.parse(JSON.stringify(defaultData));
+
+      // ── 從 JSONBin 載入 ───────────────────────────────
+      showToast('雲端資料載入中…', 'basic', 0);
+      try {
+        const res = await fetch(`${JSONBIN_URL}/latest`, {
+          headers: { 'X-Master-Key': JSONBIN_KEY }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        const record = json.record;
+        if (record && Object.keys(record).some(k => k !== 'initialized')) {
+          appData = { ...defaultData, ...record };
+          if (!Array.isArray(appData.customModules))  appData.customModules  = [];
+          if (!Array.isArray(appData.customTypes))     appData.customTypes    = [];
+          if (!Array.isArray(appData.dynamicEntries))  appData.dynamicEntries = [];
+          showToast('已從雲端載入', 'success');
+        } else {
+          await fetch(JSONBIN_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+            body: JSON.stringify(defaultData)
+          });
+          showToast('已初始化雲端資料', 'success');
+        }
+      } catch (err) {
+        console.error('JSONBin 讀取失敗：', err);
+        showToast('雲端連線失敗，使用本機暫存', 'warning');
+        const local = localStorage.getItem('nexus_dashboard_v1');
+        if (local) {
+          appData = JSON.parse(local);
+          if (!Array.isArray(appData.customModules))  appData.customModules  = [];
+          if (!Array.isArray(appData.customTypes))     appData.customTypes    = [];
+          if (!Array.isArray(appData.dynamicEntries))  appData.dynamicEntries = [];
+        }
+      }
+
+      // ── 儲存 ─────────────────────────────────────────
+      const saveState = async () => {
+        localStorage.setItem('nexus_dashboard_v1', JSON.stringify(appData));
+        try {
+          const res = await fetch(JSONBIN_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+            body: JSON.stringify(appData)
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          showToast('已同步至雲端', 'success');
+        } catch (err) {
+          console.error('JSONBin 儲存失敗：', err);
+          showToast('雲端儲存失敗，已存本機', 'warning');
+        }
+      };
+
+      // ════════════════════════════════════════════════
+      // 主健身會籍卡片
+      // ════════════════════════════════════════════════
+      const updateGymUI = () => {
+        const gym = appData.gym;
+        const used = gym.records.length, remaining = gym.total - used;
+        const percent = Math.min((used / gym.total) * 100, 100);
+        document.getElementById('gym-sub-period').innerText = `${gym.startDate} ~ ${gym.endDate}`;
+        document.getElementById('gym-used').innerText = used;
+        document.getElementById('gym-total-stat').innerText = gym.total;
+        const remainingEl = document.getElementById('gym-remaining');
+        remainingEl.innerText = remaining;
+        remainingEl.style.color = remaining <= 3 ? '#ff0055' : '';
+        document.getElementById('gym-progress-bar').style.width = `${percent}%`;
+      };
+
+      document.getElementById('btn-gym-edit').addEventListener('click', () => {
+        document.getElementById('gym-view-mode').style.display = 'none';
+        document.getElementById('gym-edit-mode').style.display = 'flex';
+        document.getElementById('edit-gym-total').value = appData.gym.total;
+        document.getElementById('edit-gym-start').value = appData.gym.startDate;
+        document.getElementById('edit-gym-end').value = appData.gym.endDate;
+      });
+      document.getElementById('btn-gym-cancel').addEventListener('click', () => {
+        document.getElementById('gym-edit-mode').style.display = 'none';
+        document.getElementById('gym-view-mode').style.display = 'block';
+      });
+      document.getElementById('btn-gym-save').addEventListener('click', async () => {
+        const total = parseInt(document.getElementById('edit-gym-total').value);
+        const start = document.getElementById('edit-gym-start').value;
+        const end = document.getElementById('edit-gym-end').value;
+        if (!total || !start || !end) { alert('請填寫所有欄位'); return; }
+        if (start > end) { alert('起始日不可晚於結束日'); return; }
+        appData.gym.total = total; appData.gym.startDate = start; appData.gym.endDate = end;
+        appData.gym.records = appData.gym.records.filter(r => r >= start && r <= end);
+        document.getElementById('gym-edit-mode').style.display = 'none';
+        document.getElementById('gym-view-mode').style.display = 'block';
+        updateGymUI(); renderCalendar(); await saveState();
+      });
+
+      // ════════════════════════════════════════════════
+      // 無法運動日 Modal
+      // ════════════════════════════════════════════════
+      let _restTarget = null;   // 當前編輯的 gym 資料物件（appData.gym 或 mod）
+      let _restTemp   = [];     // 編輯中的暫存清單
+
+      const renderRestChips = () => {
+        const container = document.getElementById('rest-days-chips');
+        if (!container) return;
+        if (_restTemp.length === 0) {
+          container.innerHTML = `<p style="font-size:0.82rem;color:var(--text-muted);">尚未設定任何無法運動日</p>`;
+          return;
+        }
+        container.innerHTML = '';
+        [..._restTemp].sort().forEach(ds => {
+          const chip = document.createElement('div');
+          chip.className = 'rest-chip';
+          chip.innerHTML = `<span>${ds}</span><button class="rest-chip-remove" data-ds="${ds}"><i data-lucide="x" size="12"></i></button>`;
+          chip.querySelector('.rest-chip-remove').addEventListener('click', () => {
+            _restTemp = _restTemp.filter(d => d !== ds);
+            renderRestChips();
+            lucide.createIcons();
+          });
+          container.appendChild(chip);
+        });
+        lucide.createIcons();
+      };
+
+      const openRestDaysModal = (gymRef) => {
+        _restTarget = gymRef;
+        _restTemp   = [...(gymRef.restDays || [])];
+        document.getElementById('rest-day-input').value = '';
+        renderRestChips();
+        document.getElementById('modal-rest-days').classList.add('active');
+      };
+
+      const closeRestDaysModal = () => {
+        document.getElementById('modal-rest-days').classList.remove('active');
+        _restTarget = null; _restTemp = [];
+      };
+
+      document.getElementById('btn-rest-close').addEventListener('click', closeRestDaysModal);
+      document.getElementById('btn-rest-cancel').addEventListener('click', closeRestDaysModal);
+      document.getElementById('modal-rest-days').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-rest-days')) closeRestDaysModal();
+      });
+
+      document.getElementById('btn-rest-add').addEventListener('click', () => {
+        const val = document.getElementById('rest-day-input').value;
+        if (!val) return;
+        if (!_restTemp.includes(val)) { _restTemp.push(val); renderRestChips(); }
+        document.getElementById('rest-day-input').value = '';
+      });
+
+      document.getElementById('btn-rest-save').addEventListener('click', async () => {
+        if (!_restTarget) return;
+        _restTarget.restDays = [..._restTemp];
+        closeRestDaysModal();
+        // 重新渲染行事曆
+        renderCalendar();
+        renderCustomModules();
+        await saveState();
+      });
+
+      // 靜態健身房卡片的按鈕
+      document.getElementById('btn-gym-rest-days').addEventListener('click', () => {
+        openRestDaysModal(appData.gym);
+      });
+
+      // ── 長按事件 helper ───────────────────────────────
+      // onTap：短按；onLongPress：長按（500ms）
+      const attachCellPress = (cell, onTap, onLongPress) => {
+        let timer = null, fired = false;
+        const start = () => { fired = false; timer = setTimeout(() => { fired = true; onLongPress(); }, 500); };
+        const end   = (doTap) => { clearTimeout(timer); if (doTap && !fired) onTap(); };
+        cell.addEventListener('touchstart',  start,                         { passive: true });
+        cell.addEventListener('touchend',    () => end(true),               { passive: true });
+        cell.addEventListener('touchmove',   () => { clearTimeout(timer); fired = true; }, { passive: true });
+        cell.addEventListener('mousedown',   start);
+        cell.addEventListener('mouseup',     () => end(true));
+        cell.addEventListener('mouseleave',  () => end(false));
+        cell.addEventListener('contextmenu', e => e.preventDefault());
+      };
+
+      // 主行事曆
+      let viewDate = new Date();
+      const renderCalendar = () => {
+        const year = viewDate.getFullYear(), month = viewDate.getMonth();
+        document.getElementById('cal-month-year').innerText = `${year}年 ${month + 1}月`;
+        const grid = document.getElementById('cal-grid');
+        grid.innerHTML = '';
+        ['日', '一', '二', '三', '四', '五', '六'].forEach(d => {
+          const el = document.createElement('div'); el.className = 'calendar-day-header'; el.innerText = d; grid.appendChild(el);
+        });
+        const firstDay = new Date(year, month, 1).getDay();
+        const totalDays = new Date(year, month + 1, 0).getDate();
+        const todayStr = formatStr(new Date());
+        for (let i = 0; i < firstDay; i++) { const e = document.createElement('div'); e.className = 'calendar-cell empty'; grid.appendChild(e); }
+        for (let day = 1; day <= totalDays; day++) {
+          const cell = document.createElement('div'); cell.className = 'calendar-cell'; cell.innerText = day;
+          const iterDate = new Date(year, month, day); const ds = formatStr(iterDate);
+          const ss = new Date(appData.gym.startDate), se = new Date(appData.gym.endDate);
+          if (iterDate < new Date(ss.setHours(0, 0, 0, 0)) || iterDate > new Date(se.setHours(23, 59, 59, 999))) {
+            cell.classList.add('out-of-range'); cell.title = '不在有效區間內';
+          } else if ((appData.gym.restDays || []).includes(ds)) {
+            cell.classList.add('rest-day'); cell.title = '無法運動日';
+          } else {
+            if (ds === todayStr) cell.classList.add('today');
+            if (appData.gym.records.includes(ds)) cell.classList.add('active');
+            if ((appData.gym.planned || []).includes(ds)) cell.classList.add('planned');
+            attachCellPress(cell,
+              // 短按：切換打卡
+              () => {
+                if (cell.classList.contains('active')) {
+                  const idx = appData.gym.records.indexOf(ds);
+                  if (idx > -1) {
+                    openConfirmModal(
+                      '取消打卡？',
+                      `確定要移除 <strong>${ds}</strong> 的打卡紀錄嗎？`,
+                      '確定移除',
+                      async () => {
+                        appData.gym.records.splice(idx, 1);
+                        cell.classList.remove('active');
+                        saveState(); updateGymUI();
+                      }
+                    );
+                  }
+                } else if (appData.gym.records.length < appData.gym.total) { appData.gym.records.push(ds); cell.classList.add('active'); saveState(); updateGymUI(); }
+                else { showToast('您已達使用次數上限！', 'warning'); }
+              },
+              // 長按：切換計畫
+              () => {
+                if (!appData.gym.planned) appData.gym.planned = [];
+                const idx = appData.gym.planned.indexOf(ds);
+                if (idx > -1) { appData.gym.planned.splice(idx, 1); cell.classList.remove('planned'); }
+                else { appData.gym.planned.push(ds); cell.classList.add('planned'); }
+                saveState();
+              }
+            );
+          }
+          grid.appendChild(cell);
+        }
+      };
+      document.getElementById('cal-prev').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() - 1); renderCalendar(); });
+      document.getElementById('cal-next').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() + 1); renderCalendar(); });
+
+      // ── 自動換算結束日（兩個月後） ────────────────────
+      const autoCalculateEndDate = (startId, endId) => {
+        const startInput = document.getElementById(startId);
+        const endInput = document.getElementById(endId);
+        startInput.addEventListener('change', () => {
+          if (!startInput.value) return;
+          const d = new Date(startInput.value);
+          d.setMonth(d.getMonth() + 2);
+          d.setDate(d.getDate() - 1);
+          endInput.value = formatStr(d);
+        });
+      };
+      autoCalculateEndDate('edit-gym-start', 'edit-gym-end'); // 主卡片編輯
+      autoCalculateEndDate('form-gym-start', 'form-gym-end'); // 彈窗表單
+
+      // ════════════════════════════════════════════════
+      // 自訂模組：各型別卡片建構
+      // ════════════════════════════════════════════════
+      const gymModViewDates = {};
+
+      /* ── 健身房模組卡片 ── */
+      const buildGymModCard = (mod) => {
+        if (!gymModViewDates[mod.id]) gymModViewDates[mod.id] = new Date();
+        const card = document.createElement('div');
+        card.className = 'card custom-module-card type-gym'; card.dataset.id = mod.id; card.dataset.type = 'gym';
+
+        card.innerHTML = `
+          <div class="card-header">
+            <div>
+              <h2 class="card-title"><span class="gym-num">#${mod.gymNumber ?? ''}</span></h2>
+              <div class="card-subtitle"><i data-lucide="calendar" size="14"></i><span>${mod.startDate} ~ ${mod.endDate}</span></div>
+            </div>
+            <button class="btn-icon btn-edit-custom" title="編輯"><i data-lucide="pencil" size="15"></i></button>
+          </div>
+          <div class="progress-stats">
+            <div class="stat-block"><span>已完成</span><div><span class="highlight" data-used>0</span> / <span data-total>${mod.total}</span></div></div>
+            <div class="stat-block" style="text-align:right"><span>剩餘</span><div><span class="highlight" data-remaining>0</span></div></div>
+          </div>
+          <div class="progress-bar-container"><div class="progress-bar-fill" data-bar style="width:0%"></div></div>
+          <div class="calendar-widget">
+            <div class="calendar-controls">
+              <button class="gm-prev"><i data-lucide="chevron-left" size="18"></i></button>
+              <span class="month-year gm-label">...</span>
+              <button class="gm-next"><i data-lucide="chevron-right" size="18"></i></button>
+            </div>
+            <div class="calendar-grid gm-grid"></div>
+            <button class="btn-rest-days gm-rest-btn">
+              <i data-lucide="ban" size="13"></i>無法運動日
+            </button>
+          </div>`;
+
+        card.querySelector('.btn-edit-custom').addEventListener('click', () => openFormModal('gym', mod));
+
+        const updateStats = () => {
+          const u = (mod.records || []).length, r = mod.total - u;
+          card.querySelector('[data-used]').innerText = u;
+          const remEl = card.querySelector('[data-remaining]');
+          remEl.innerText = r;
+          remEl.style.color = r <= 3 ? '#ff0055' : '';
+          card.querySelector('[data-bar]').style.width = `${Math.min((u / mod.total) * 100, 100)}%`;
+        };
+
+        const renderModCal = () => {
+          const vd = gymModViewDates[mod.id];
+          const yr = vd.getFullYear(), mo = vd.getMonth();
+          card.querySelector('.gm-label').innerText = `${yr}年 ${mo + 1}月`;
+          const grid = card.querySelector('.gm-grid'); grid.innerHTML = '';
+          ['日', '一', '二', '三', '四', '五', '六'].forEach(d => { const el = document.createElement('div'); el.className = 'calendar-day-header'; el.innerText = d; grid.appendChild(el); });
+          const firstDay = new Date(yr, mo, 1).getDay(), totalDays = new Date(yr, mo + 1, 0).getDate();
+          const todayStr = formatStr(new Date());
+          for (let i = 0; i < firstDay; i++) { const e = document.createElement('div'); e.className = 'calendar-cell empty'; grid.appendChild(e); }
+          for (let day = 1; day <= totalDays; day++) {
+            const cell = document.createElement('div'); cell.className = 'calendar-cell'; cell.innerText = day;
+            const iterDate = new Date(yr, mo, day); const ds = formatStr(iterDate);
+            const ss = new Date(mod.startDate), se = new Date(mod.endDate);
+            if (iterDate < new Date(new Date(ss).setHours(0, 0, 0, 0)) || iterDate > new Date(new Date(se).setHours(23, 59, 59, 999))) {
+              cell.classList.add('out-of-range'); cell.title = '不在有效區間內';
+            } else if ((mod.restDays || []).includes(ds)) {
+              cell.classList.add('rest-day'); cell.title = '無法運動日';
+            } else {
+              if (ds === todayStr) cell.classList.add('today');
+              if ((mod.records || []).includes(ds)) cell.classList.add('active');
+              if ((mod.planned || []).includes(ds)) cell.classList.add('planned');
+              attachCellPress(cell,
+                // 短按：切換打卡
+                () => {
+                  if (!mod.records) mod.records = [];
+                  if (cell.classList.contains('active')) {
+                    const idx = mod.records.indexOf(ds);
+                    if (idx > -1) {
+                      openConfirmModal(
+                        '取消打卡？',
+                        `確定要移除 <strong>${ds}</strong> 的打卡紀錄嗎？`,
+                        '確定移除',
+                        async () => {
+                          mod.records.splice(idx, 1);
+                          cell.classList.remove('active');
+                          updateStats(); saveState();
+                        }
+                      );
+                    }
+                  } else if (mod.records.length < mod.total) { mod.records.push(ds); cell.classList.add('active'); updateStats(); saveState(); }
+                  else { showToast('已達使用次數上限！', 'warning'); }
+                },
+                // 長按：切換計畫
+                () => {
+                  if (!mod.planned) mod.planned = [];
+                  const idx = mod.planned.indexOf(ds);
+                  if (idx > -1) { mod.planned.splice(idx, 1); cell.classList.remove('planned'); }
+                  else { mod.planned.push(ds); cell.classList.add('planned'); }
+                  saveState();
+                }
+              );
+            }
+            grid.appendChild(cell);
+          }
+        };
+
+        card.querySelector('.gm-prev').addEventListener('click', () => { gymModViewDates[mod.id].setMonth(gymModViewDates[mod.id].getMonth() - 1); renderModCal(); });
+        card.querySelector('.gm-next').addEventListener('click', () => { gymModViewDates[mod.id].setMonth(gymModViewDates[mod.id].getMonth() + 1); renderModCal(); });
+        card.querySelector('.gm-rest-btn').addEventListener('click', () => openRestDaysModal(mod));
+
+        updateStats(); renderModCal();
+        return card;
+      };
+
+      /* ── 求職追蹤卡片 ── */
+      const buildJobCard = (mod) => {
+        const card = document.createElement('div');
+        card.className = 'card custom-module-card type-job'; card.dataset.id = mod.id; card.dataset.type = 'job';
+        const scMap = { '投遞中': 'pending', '面試中': 'interview', '已錄取': 'accepted', '已拒絕': 'rejected' };
+        const sc = scMap[mod.status] || 'pending';
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="job-header-main">
+              <div class="card-icon-inline"><i data-lucide="briefcase"></i></div>
+              <div class="job-header-text">
+                <h2 class="card-title">${mod.company}</h2>
+                <div class="card-subtitle">${mod.position}</div>
+              </div>
+            </div>
+            <button class="btn-icon btn-edit-custom" title="編輯"><i data-lucide="pencil" size="15"></i></button>
+          </div>
+          <div class="job-meta">
+            <div class="job-meta-left">
+              <span class="status-badge status-${sc}">${mod.status || '投遞中'}</span>
+              ${mod.appliedDate ? `<span class="meta-text"><i data-lucide="calendar" size="13"></i>${mod.appliedDate}</span>` : ''}
+            </div>
+            ${mod.link ? `<a href="${mod.link}" target="_blank" rel="noopener" class="module-link"><i data-lucide="external-link" size="14"></i>查看職缺</a>` : ''}
+          </div>`;
+        card.querySelector('.btn-edit-custom').addEventListener('click', () => openFormModal('job', mod));
+        return card;
+      };
+
+      /* ── 找租屋卡片 ── */
+      const buildRentalCard = (mod) => {
+        const card = document.createElement('div');
+        card.className = 'card custom-module-card type-rental'; card.dataset.id = mod.id; card.dataset.type = 'rental';
+        card.innerHTML = `
+          <div class="card-icon"><i data-lucide="home"></i></div>
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">${mod.name}</h2>
+              ${mod.address ? `<div class="card-subtitle"><i data-lucide="map-pin" size="14"></i><span>${mod.address}</span></div>` : ''}
+            </div>
+            <button class="btn-icon btn-edit-custom" title="編輯"><i data-lucide="pencil" size="15"></i></button>
+          </div>
+          ${mod.rent ? `<div class="rent-display"><span class="rent-amount">NT$ ${Number(mod.rent).toLocaleString()}</span><span class="rent-unit"> / 月</span></div>` : ''}
+          <div class="rental-details">
+            ${mod.viewingDate ? `<div class="detail-row"><i data-lucide="calendar" size="13"></i><span>看房：${mod.viewingDate}</span></div>` : ''}
+            ${mod.link ? `<a href="${mod.link}" target="_blank" rel="noopener" class="module-link"><i data-lucide="external-link" size="14"></i>房源連結</a>` : ''}
+          </div>
+          ${mod.notes ? `<p class="module-desc">${mod.notes}</p>` : ''}`;
+        card.querySelector('.btn-edit-custom').addEventListener('click', () => openFormModal('rental', mod));
+        return card;
+      };
+
+      /* ── 渲染所有自訂模組（gym/job/rental） ── */
+      const renderCustomModules = () => {
+        document.querySelectorAll('.custom-module-card').forEach(el => el.remove());
+        const addBtn = document.getElementById('btn-add-module');
+        const builtinTypes = ['gym', 'job', 'rental'];
+        appData.customModules.forEach(mod => {
+          let card;
+          if (mod.type === 'gym') card = buildGymModCard(mod);
+          else if (mod.type === 'job') card = buildJobCard(mod);
+          else if (mod.type === 'rental') card = buildRentalCard(mod);
+          else return;
+          // Immediately hide cards that don't match the current builtin view
+          if (builtinTypes.includes(currentViewType) && mod.type !== currentViewType) {
+            card.style.display = 'none';
+          }
+          addBtn.parentNode.insertBefore(card, addBtn);
+        });
+        lucide.createIcons();
+      };
+
+      // ════════════════════════════════════════════════
+      // 動態類別：Dashboard 卡片 & 類別頁面
+      // ════════════════════════════════════════════════
+
+      /* ── 在 Dashboard 渲染自訂類別卡片 ── */
+      const renderDashboardDynamicCards = () => {
+        document.querySelectorAll('.dash-card-dynamic').forEach(el => el.remove());
+        const addBtn = document.getElementById('dash-btn-add');
+        (appData.customTypes || []).forEach(ct => {
+          const card = document.createElement('div');
+          card.className = 'dash-card dash-card-dynamic';
+          card.dataset.target = ct.id;
+          card.innerHTML = `<div class="dash-icon"><i data-lucide="layers"></i></div><h3>${ct.name}</h3>`;
+          card.addEventListener('click', () => switchView(ct.id));
+          addBtn.parentNode.insertBefore(card, addBtn);
+        });
+        lucide.createIcons();
+      };
+
+      /* ── 建立動態紀錄卡片 ── */
+      const buildDynamicEntryCard = (ct, entry) => {
+        const card = document.createElement('div');
+        card.className = `card dynamic-entry-card type-${ct.id}`;
+        card.dataset.id = entry.id;
+
+        const metricsHTML = (ct.metrics || [])
+          .filter(m => entry.values?.[m.id] != null && entry.values[m.id] !== '')
+          .map(m => `
+            <div class="metric-stat">
+              <span class="metric-stat-label">${m.label}</span>
+              <span class="metric-stat-value">${entry.values[m.id]}</span>
+            </div>`).join('');
+
+        card.innerHTML = `
+          <div class="card-icon"><i data-lucide="layers"></i></div>
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">${ct.name}</h2>
+              ${entry.date ? `<div class="card-subtitle"><i data-lucide="calendar" size="14"></i><span>${entry.date}</span></div>` : ''}
+            </div>
+            <button class="btn-icon btn-edit-entry" title="編輯"><i data-lucide="pencil" size="15"></i></button>
+          </div>
+          ${metricsHTML ? `<div class="dynamic-entry-metrics">${metricsHTML}</div>` : ''}`;
+
+        card.querySelector('.btn-edit-entry').addEventListener('click', () => openEntryModal(ct.id, entry));
+        return card;
+      };
+
+      /* ── 渲染動態類別的所有紀錄 ── */
+      const renderDynamicTypeEntries = (typeId) => {
+        document.querySelectorAll('.dynamic-entry-card').forEach(el => el.remove());
+        const ct = (appData.customTypes || []).find(t => t.id === typeId);
+        if (!ct) return;
+        const entries = (appData.dynamicEntries || []).filter(e => e.typeId === typeId);
+        const addBtn = document.getElementById('btn-add-module');
+        entries.forEach(entry => {
+          const card = buildDynamicEntryCard(ct, entry);
+          addBtn.parentNode.insertBefore(card, addBtn);
+        });
+        lucide.createIcons();
+      };
+
+      // ════════════════════════════════════════════════
+      // SPA 路由
+      // ════════════════════════════════════════════════
+      let currentViewType = 'dashboard';
+
+      const switchView = (viewType) => {
+        currentViewType = viewType;
+        const dashboard = document.getElementById('view-dashboard');
+        const dashboardHeader = document.querySelector('.dashboard-header');
+        const categoryView = document.getElementById('view-category');
+        const categoryTitle = document.getElementById('category-title');
+        const btnDeleteType = document.getElementById('btn-delete-type');
+
+        if (viewType === 'dashboard') {
+          dashboard.style.display = 'grid';
+          dashboardHeader.style.display = 'block';
+          categoryView.style.display = 'none';
+        } else {
+          dashboard.style.display = 'none';
+          dashboardHeader.style.display = 'none';
+          categoryView.style.display = 'block';
+
+          const builtinTitles = { gym: '健身房紀錄', job: '求職紀錄', rental: '租屋紀錄' };
+
+          // 刪除類別按鈕：只對自訂類別顯示
+          btnDeleteType.style.display = builtinTitles[viewType] ? 'none' : 'flex';
+
+          if (builtinTitles[viewType]) {
+            categoryTitle.innerText = builtinTitles[viewType];
+            // 移除上次動態紀錄卡片
+            document.querySelectorAll('.dynamic-entry-card').forEach(el => el.remove());
+            renderCustomModules();
+          } else {
+            // 動態類別
+            const ct = (appData.customTypes || []).find(t => t.id === viewType);
+            categoryTitle.innerText = ct?.name || '';
+            // 移除上次的 custom-module-card（gym/job/rental）
+            document.querySelectorAll('.custom-module-card').forEach(el => el.remove());
+            renderDynamicTypeEntries(viewType);
+          }
+
+          // 顯示/隱藏 grid-container 中的卡片
+          const cards = document.getElementById('grid-container').children;
+          Array.from(cards).forEach(card => {
+            if (card.classList.contains(`type-${viewType}`) || card.id === 'btn-add-module') {
+              card.style.display = 'flex';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        }
+        lucide.createIcons();
+      };
+
+      // ════════════════════════════════════════════════
+      // Modal 邏輯
+      // ════════════════════════════════════════════════
+      let currentFormType = null;
+      let editingModuleId = null;
+      let editingEntryId = null;
+      let editingEntryTypeId = null;
+      let pendingDeleteAction = null;
+
+      /* ── 共用 Confirm Modal 開啟器 ── */
+      const openConfirmModal = (title, msgHTML, btnLabel, action) => {
+        document.querySelector('#modal-confirm .modal-title').textContent = title;
+        document.getElementById('confirm-msg-text').innerHTML = msgHTML;
+        document.getElementById('btn-confirm-delete').textContent = btnLabel || '確定';
+        pendingDeleteAction = action;
+        document.getElementById('modal-confirm').classList.add('active');
+      };
+
+      /* ── 類型選擇 Modal（保留備用） ── */
+      document.getElementById('btn-type-close').addEventListener('click', () => {
+        document.getElementById('modal-type').classList.remove('active');
+      });
+      document.getElementById('modal-type').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-type')) document.getElementById('modal-type').classList.remove('active');
+      });
+      document.querySelectorAll('.type-card').forEach(tc => {
+        tc.addEventListener('click', () => {
+          document.getElementById('modal-type').classList.remove('active');
+          openFormModal(tc.dataset.type);
+        });
+      });
+
+      /* ── 表單 Modal ── */
+      const typeNames = { gym: '健身房紀錄', job: '求職追蹤紀錄', rental: '找租屋紀錄' };
+
+      const openFormModal = (type, existingData = null) => {
+        currentFormType = type;
+        editingModuleId = existingData?.id || null;
+        document.querySelectorAll('.form-section').forEach(s => s.style.display = 'none');
+        document.getElementById(`form-${type}`).style.display = 'flex';
+
+        const titleEl = document.getElementById('modal-form-title');
+        if (type === 'gym') {
+          const gymNum = existingData?.gymNumber
+            ?? (2 + appData.customModules.filter(m => m.type === 'gym').length);
+          titleEl.innerHTML = `${existingData ? '編輯' : '新增'}健身房紀錄 <span class="gym-num">#${gymNum}</span>`;
+        } else {
+          titleEl.innerText = existingData ? `編輯${typeNames[type]}` : `新增${typeNames[type]}`;
+        }
+
+        const d = existingData;
+        const today2mEnd = new Date(); today2mEnd.setMonth(today2mEnd.getMonth() + 2); today2mEnd.setDate(today2mEnd.getDate() - 1);
+        if (type === 'gym') {
+          document.getElementById('form-gym-start').value = d?.startDate || formatStr(new Date());
+          document.getElementById('form-gym-end').value = d?.endDate || formatStr(today2mEnd);
+          document.getElementById('form-gym-total').value = d?.total || 20;
+        } else if (type === 'job') {
+          document.getElementById('form-job-company').value = d?.company || '';
+          document.getElementById('form-job-position').value = d?.position || '';
+          document.getElementById('form-job-link').value = d?.link || '';
+          document.getElementById('form-job-date').value = d?.appliedDate || formatStr(new Date());
+          document.getElementById('form-job-status').value = d?.status || '投遞中';
+        } else if (type === 'rental') {
+          document.getElementById('form-rental-name').value = d?.name || '';
+          document.getElementById('form-rental-link').value = d?.link || '';
+          document.getElementById('form-rental-address').value = d?.address || '';
+          document.getElementById('form-rental-rent').value = d?.rent || '';
+          document.getElementById('form-rental-date').value = d?.viewingDate || '';
+          document.getElementById('form-rental-notes').value = d?.notes || '';
+        }
+
+        document.getElementById('btn-form-delete').style.display = existingData ? 'flex' : 'none';
+        document.getElementById('modal-form').classList.add('active');
+      };
+
+      const closeFormModal = () => {
+        document.getElementById('modal-form').classList.remove('active');
+        currentFormType = null; editingModuleId = null;
+      };
+
+      document.getElementById('btn-form-close').addEventListener('click', closeFormModal);
+      document.getElementById('btn-form-cancel').addEventListener('click', closeFormModal);
+      document.getElementById('modal-form').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-form')) closeFormModal();
+      });
+
+      /* ── 確認 Modal（共用） ── */
+      const closeConfirmModal = () => {
+        document.getElementById('modal-confirm').classList.remove('active');
+      };
+
+      document.getElementById('btn-confirm-cancel').addEventListener('click', () => {
+        pendingDeleteAction = null;
+        closeConfirmModal();
+      });
+      document.getElementById('modal-confirm').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-confirm')) {
+          pendingDeleteAction = null;
+          closeConfirmModal();
+        }
+      });
+
+      // 執行待定動作
+      document.getElementById('btn-confirm-delete').addEventListener('click', async () => {
+        if (pendingDeleteAction) {
+          await pendingDeleteAction();
+          pendingDeleteAction = null;
+          closeConfirmModal();
+        }
+      });
+
+      /* ── 刪除 customModules 項目 ── */
+      document.getElementById('btn-form-delete').addEventListener('click', () => {
+        openConfirmModal('確認刪除？', '確定要刪除此項目嗎？<br><strong>此操作無法復原。</strong>', '確定刪除', async () => {
+          if (!editingModuleId) return;
+          const idx = appData.customModules.findIndex(m => m.id === editingModuleId);
+          if (idx === -1) return;
+          const backup = appData.customModules[idx];
+          appData.customModules.splice(idx, 1);
+          localStorage.setItem('nexus_dashboard_v1', JSON.stringify(appData));
+          try {
+            const { error } = await db.from(TABLE).upsert({ id: 1, data: appData, updated_at: getTaiwanISOString() }, { onConflict: 'id' });
+            if (error) throw error;
+            closeConfirmModal(); closeFormModal();
+            renderCustomModules();
+            showToast('項目已刪除', 'success');
+          } catch (err) {
+            console.error('刪除失敗：', err);
+            appData.customModules.splice(idx, 0, backup);
+            localStorage.setItem('nexus_dashboard_v1', JSON.stringify(appData));
+            closeConfirmModal();
+            showToast('刪除失敗，請稍後再試', 'danger');
+          }
+        });
+      });
+
+      /* ── 表單儲存 ── */
+      document.getElementById('btn-form-save').addEventListener('click', async () => {
+        let modData;
+
+        if (currentFormType === 'gym') {
+          const start = document.getElementById('form-gym-start').value;
+          const end = document.getElementById('form-gym-end').value;
+          const total = parseInt(document.getElementById('form-gym-total').value);
+          if (!start || !end || !total || total < 1) { alert('請填寫所有必填欄位'); return; }
+          if (start > end) { alert('起始日不可晚於結束日'); return; }
+          modData = { type: 'gym', startDate: start, endDate: end, total };
+        } else if (currentFormType === 'job') {
+          const company = document.getElementById('form-job-company').value.trim();
+          const position = document.getElementById('form-job-position').value.trim();
+          if (!company || !position) { alert('請填寫公司名稱與職位名稱'); return; }
+          modData = {
+            type: 'job', company, position,
+            link: document.getElementById('form-job-link').value.trim(),
+            appliedDate: document.getElementById('form-job-date').value,
+            status: document.getElementById('form-job-status').value
+          };
+        } else if (currentFormType === 'rental') {
+          const name = document.getElementById('form-rental-name').value.trim();
+          if (!name) { alert('請填寫物件名稱'); return; }
+          const rent = document.getElementById('form-rental-rent').value;
+          modData = {
+            type: 'rental', name,
+            link: document.getElementById('form-rental-link').value.trim(),
+            address: document.getElementById('form-rental-address').value.trim(),
+            rent: rent ? parseInt(rent) : null,
+            viewingDate: document.getElementById('form-rental-date').value,
+            notes: document.getElementById('form-rental-notes').value.trim()
+          };
+        }
+
+        if (editingModuleId) {
+          const idx = appData.customModules.findIndex(m => m.id === editingModuleId);
+          if (idx > -1) {
+            const existing = appData.customModules[idx];
+            if (modData.type === 'gym') {
+              modData.records = (existing.records || []).filter(r => r >= modData.startDate && r <= modData.endDate);
+            }
+            appData.customModules[idx] = { ...existing, ...modData };
+          }
+        } else {
+          if (modData.type === 'gym') {
+            modData.records = [];
+            modData.gymNumber = 2 + appData.customModules.filter(m => m.type === 'gym').length;
+          }
+          appData.customModules.push({ id: Date.now().toString(), ...modData });
+        }
+
+        closeFormModal();
+        renderCustomModules();
+        await saveState();
+        switchView(modData.type);
+      });
+
+      // ════════════════════════════════════════════════
+      // Entry Modal（動態紀錄）
+      // ════════════════════════════════════════════════
+      const openEntryModal = (typeId, existingEntry = null) => {
+        const ct = (appData.customTypes || []).find(t => t.id === typeId);
+        if (!ct) return;
+        editingEntryId = existingEntry?.id || null;
+        editingEntryTypeId = typeId;
+
+        document.getElementById('entry-modal-title').innerText =
+          existingEntry ? `編輯${ct.name}紀錄` : `新增${ct.name}紀錄`;
+        document.getElementById('entry-date').value =
+          existingEntry?.date || formatStr(new Date());
+
+        const container = document.getElementById('entry-fields-container');
+        container.innerHTML = '';
+        (ct.metrics || []).forEach(m => {
+          const label = document.createElement('label');
+          label.className = 'form-label';
+          label.innerHTML = `${m.label}<input type="text" class="form-input" data-metric-id="${m.id}" placeholder="輸入${m.label}…">`;
+          if (existingEntry?.values?.[m.id] != null) {
+            label.querySelector('input').value = existingEntry.values[m.id];
+          }
+          container.appendChild(label);
+        });
+
+        document.getElementById('btn-entry-delete').style.display = existingEntry ? 'flex' : 'none';
+        document.getElementById('modal-entry').classList.add('active');
+      };
+
+      const closeEntryModal = () => {
+        document.getElementById('modal-entry').classList.remove('active');
+        editingEntryId = null; editingEntryTypeId = null;
+      };
+
+      document.getElementById('btn-entry-close').addEventListener('click', closeEntryModal);
+      document.getElementById('btn-entry-cancel').addEventListener('click', closeEntryModal);
+      document.getElementById('modal-entry').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-entry')) closeEntryModal();
+      });
+
+      // 刪除動態紀錄
+      document.getElementById('btn-entry-delete').addEventListener('click', () => {
+        openConfirmModal('確認刪除？', '確定要刪除此紀錄嗎？<br><strong>此操作無法復原。</strong>', '確定刪除', async () => {
+          if (!editingEntryId) return;
+          const idx = appData.dynamicEntries.findIndex(e => e.id === editingEntryId);
+          if (idx === -1) return;
+          const backup = appData.dynamicEntries[idx];
+          const typeId = editingEntryTypeId;
+          appData.dynamicEntries.splice(idx, 1);
+          localStorage.setItem('nexus_dashboard_v1', JSON.stringify(appData));
+          try {
+            const { error } = await db.from(TABLE).upsert({ id: 1, data: appData, updated_at: getTaiwanISOString() }, { onConflict: 'id' });
+            if (error) throw error;
+            closeConfirmModal(); closeEntryModal();
+            renderDynamicTypeEntries(typeId);
+            // re-apply visibility filter
+            const cards = document.getElementById('grid-container').children;
+            Array.from(cards).forEach(card => {
+              if (card.classList.contains(`type-${typeId}`) || card.id === 'btn-add-module') {
+                card.style.display = 'flex';
+              } else { card.style.display = 'none'; }
+            });
+            showToast('紀錄已刪除', 'success');
+          } catch (err) {
+            console.error('刪除失敗：', err);
+            appData.dynamicEntries.splice(idx, 0, backup);
+            localStorage.setItem('nexus_dashboard_v1', JSON.stringify(appData));
+            closeConfirmModal();
+            showToast('刪除失敗，請稍後再試', 'danger');
+          }
+        });
+      });
+
+      // 儲存動態紀錄
+      document.getElementById('btn-entry-save').addEventListener('click', async () => {
+        const typeId = editingEntryTypeId;
+        const ct = (appData.customTypes || []).find(t => t.id === typeId);
+        if (!ct) return;
+
+        const date = document.getElementById('entry-date').value;
+        const values = {};
+        document.querySelectorAll('#entry-fields-container [data-metric-id]').forEach(input => {
+          values[input.dataset.metricId] = input.value.trim();
+        });
+
+        if (editingEntryId) {
+          const idx = appData.dynamicEntries.findIndex(e => e.id === editingEntryId);
+          if (idx > -1) {
+            appData.dynamicEntries[idx] = { ...appData.dynamicEntries[idx], date, values };
+          }
+        } else {
+          appData.dynamicEntries.push({
+            id: Date.now().toString(),
+            typeId,
+            date,
+            values
+          });
+        }
+
+        closeEntryModal();
+        renderDynamicTypeEntries(typeId);
+        // re-apply visibility filter
+        const cards = document.getElementById('grid-container').children;
+        Array.from(cards).forEach(card => {
+          if (card.classList.contains(`type-${typeId}`) || card.id === 'btn-add-module') {
+            card.style.display = 'flex';
+          } else { card.style.display = 'none'; }
+        });
+        await saveState();
+      });
+
+      // ════════════════════════════════════════════════
+      // Creator Modal（建立新追蹤類別）
+      // ════════════════════════════════════════════════
+      let _metricCounter = 0;
+
+      const addMetricRow = (labelVal = '') => {
+        const list = document.getElementById('metrics-list');
+        const uid = `m-${Date.now()}-${_metricCounter++}`;
+        const item = document.createElement('div');
+        item.className = 'metric-input-item';
+        item.dataset.uid = uid;
+        item.innerHTML = `
+          <input type="text" class="form-input" placeholder="指標名稱（例：距離、心率…）" value="${labelVal}">
+          <button class="btn-remove-metric" type="button" title="移除"><i data-lucide="trash-2" size="14"></i></button>`;
+        item.querySelector('.btn-remove-metric').addEventListener('click', () => {
+          item.classList.add('removing');
+          setTimeout(() => item.remove(), 220);
+        });
+        list.appendChild(item);
+        lucide.createIcons();
+        requestAnimationFrame(() => item.classList.add('visible'));
+      };
+
+      const openCreatorModal = () => {
+        document.getElementById('creator-title').value = '';
+        document.getElementById('metrics-list').innerHTML = '';
+        _metricCounter = 0;
+        addMetricRow();
+        document.getElementById('modal-creator').classList.add('active');
+      };
+
+      const closeCreatorModal = () => {
+        document.getElementById('modal-creator').classList.remove('active');
+      };
+
+      document.getElementById('btn-creator-close').addEventListener('click', closeCreatorModal);
+      document.getElementById('btn-creator-cancel').addEventListener('click', closeCreatorModal);
+      document.getElementById('modal-creator').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-creator')) closeCreatorModal();
+      });
+
+      document.getElementById('btn-add-metric').addEventListener('click', () => addMetricRow());
+
+      document.getElementById('btn-creator-save').addEventListener('click', async () => {
+        const name = document.getElementById('creator-title').value.trim();
+        if (!name) { alert('請填寫項目名稱'); return; }
+
+        const metrics = [];
+        document.querySelectorAll('#metrics-list .metric-input-item input').forEach(input => {
+          const label = input.value.trim();
+          if (label) metrics.push({ id: `met-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, label });
+        });
+
+        const newType = {
+          id: `ct-${Date.now()}`,
+          name,
+          metrics
+        };
+
+        if (!Array.isArray(appData.customTypes)) appData.customTypes = [];
+        appData.customTypes.push(newType);
+
+        closeCreatorModal();
+        renderDashboardDynamicCards();
+        await saveState();
+        switchView(newType.id);
+      });
+
+      // ── 刪除自訂類別 ────────────────────────────────
+      document.getElementById('btn-delete-type').addEventListener('click', () => {
+        const ct = (appData.customTypes || []).find(t => t.id === currentViewType);
+        if (!ct) return;
+        openConfirmModal(
+          '確認刪除？',
+          `確定要刪除「<strong>${ct.name}</strong>」及其所有紀錄嗎？<br><strong>此操作無法復原。</strong>`,
+          '確定刪除',
+          async () => {
+            appData.customTypes = appData.customTypes.filter(t => t.id !== ct.id);
+            appData.dynamicEntries = appData.dynamicEntries.filter(e => e.typeId !== ct.id);
+            localStorage.setItem('nexus_dashboard_v1', JSON.stringify(appData));
+            try {
+              const { error } = await db.from(TABLE).upsert({ id: 1, data: appData, updated_at: getTaiwanISOString() }, { onConflict: 'id' });
+              if (error) throw error;
+              closeConfirmModal();
+              renderDashboardDynamicCards();
+              switchView('dashboard');
+              showToast('類別已刪除', 'success');
+            } catch (err) {
+              console.error('刪除失敗：', err);
+              showToast('刪除失敗，請稍後再試', 'danger');
+            }
+          }
+        );
+      });
+
+      // ════════════════════════════════════════════════
+      // 事件：Dashboard 與 Category 路由
+      // ════════════════════════════════════════════════
+
+      // 靜態 dash-card 點擊
+      document.querySelectorAll('.dash-card[data-target]').forEach(card => {
+        card.addEventListener('click', () => switchView(card.dataset.target));
+      });
+
+      // 「新增項目」→ 建立新類別
+      document.getElementById('dash-btn-add').addEventListener('click', () => {
+        openCreatorModal();
+      });
+
+      // 返回儀表板
+      document.getElementById('btn-back-dash').addEventListener('click', () => switchView('dashboard'));
+
+      // 「新增同類模組」智慧路由
+      document.getElementById('btn-add-module').addEventListener('click', () => {
+        const builtinTypes = ['gym', 'job', 'rental'];
+        if (builtinTypes.includes(currentViewType)) {
+          openFormModal(currentViewType);
+        } else {
+          // 動態類別
+          openEntryModal(currentViewType);
+        }
+      });
+
+      // ── 初始渲染 ─────────────────────────────────────
+      updateGymUI();
+      renderCalendar();
+      renderCustomModules();
+      renderDashboardDynamicCards();
+      switchView('dashboard');
+    });
+  </script>
+</body>
+
+</html>
