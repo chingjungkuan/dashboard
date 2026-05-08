@@ -579,16 +579,17 @@
 
       // ── 長按事件 helper ───────────────────────────────
       // onTap：短按；onLongPress：長按（500ms）
+      // 用 click 取代 mousedown/mouseup，避免 iOS PWA 在 touch 結束後
+      // 額外觸發合成 mouse 事件，導致 onTap() 被呼叫兩次
       const attachCellPress = (cell, onTap, onLongPress) => {
         let timer = null, fired = false;
-        const start = () => { fired = false; timer = setTimeout(() => { fired = true; onLongPress(); }, 500); };
-        const end   = (doTap) => { clearTimeout(timer); if (doTap && !fired) onTap(); };
-        cell.addEventListener('touchstart',  start,                         { passive: true });
-        cell.addEventListener('touchend',    () => end(true),               { passive: true });
-        cell.addEventListener('touchmove',   () => { clearTimeout(timer); fired = true; }, { passive: true });
-        cell.addEventListener('mousedown',   start);
-        cell.addEventListener('mouseup',     () => end(true));
-        cell.addEventListener('mouseleave',  () => end(false));
+        cell.addEventListener('touchstart', () => {
+          fired = false;
+          timer = setTimeout(() => { fired = true; onLongPress(); }, 500);
+        }, { passive: true });
+        cell.addEventListener('touchend',  () => { clearTimeout(timer); }, { passive: true });
+        cell.addEventListener('touchmove', () => { clearTimeout(timer); fired = true; }, { passive: true });
+        cell.addEventListener('click',     () => { if (!fired) onTap(); fired = false; });
         cell.addEventListener('contextmenu', e => e.preventDefault());
       };
 
