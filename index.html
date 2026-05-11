@@ -229,6 +229,9 @@
               <option value="已拒絕">已拒絕</option>
             </select>
           </label>
+          <label class="form-label">備註
+            <textarea class="form-input form-textarea" id="form-job-notes" placeholder="任何補充資訊…"></textarea>
+          </label>
         </div>
 
         <!-- ── 找租屋 欄位 ── -->
@@ -867,6 +870,7 @@
         const scMap = { '投遞中': 'pending', '面試中': 'interview', '已錄取': 'accepted', '已拒絕': 'rejected' };
         const sc = scMap[mod.status] || 'pending';
         card.innerHTML = `
+          <span class="status-badge status-${sc}" style="align-self:flex-start;">${mod.status || '投遞中'}</span>
           <div class="card-header">
             <div class="job-header-main">
               <div class="card-icon-inline"><i data-lucide="briefcase"></i></div>
@@ -879,11 +883,11 @@
           </div>
           <div class="job-meta">
             <div class="job-meta-left">
-              <span class="status-badge status-${sc}">${mod.status || '投遞中'}</span>
               ${mod.appliedDate ? `<span class="meta-text"><i data-lucide="calendar" size="13"></i>${mod.appliedDate}</span>` : ''}
             </div>
             ${mod.link ? `<a href="${mod.link}" target="_blank" rel="noopener" class="module-link"><i data-lucide="external-link" size="14"></i>查看職缺</a>` : ''}
-          </div>`;
+          </div>
+          ${mod.notes ? `<p class="module-desc">${mod.notes}</p>` : ''}`;
         card.querySelector('.btn-edit-custom').addEventListener('click', () => openFormModal('job', mod));
         return card;
       };
@@ -895,6 +899,7 @@
         const sc = mod.status === '已看' ? 'seen' : 'unseen';
         const dateTime = [mod.viewingDate, mod.viewingTime].filter(Boolean).join(' ');
         card.innerHTML = `
+          <span class="status-badge status-rental-${sc}" style="align-self:flex-start;">${mod.status || '未看'}</span>
           <div class="card-header">
             <div class="job-header-main">
               <div class="card-icon-inline"><i data-lucide="home"></i></div>
@@ -903,12 +908,14 @@
                 ${mod.address ? `<div class="card-subtitle"><i data-lucide="map-pin" size="14"></i><span>${mod.address}</span></div>` : ''}
               </div>
             </div>
-            <button class="btn-icon btn-edit-custom" title="編輯"><i data-lucide="pencil" size="15"></i></button>
+            <div style="display:flex;gap:0.25rem;">
+              <button class="btn-icon btn-rental-heart ${mod.favorited ? 'is-favorited' : ''}" title="列入考慮名單"><i data-lucide="heart" size="15"></i></button>
+              <button class="btn-icon btn-edit-custom" title="編輯"><i data-lucide="pencil" size="15"></i></button>
+            </div>
           </div>
           ${mod.rent ? `<div class="rent-display"><span class="rent-amount">NT$ ${Number(mod.rent).toLocaleString()}</span><span class="rent-unit"> / 月</span></div>` : ''}
           <div class="job-meta">
             <div class="job-meta-left">
-              <span class="status-badge status-rental-${sc}">${mod.status || '未看'}</span>
               ${dateTime ? `<span class="meta-text"><i data-lucide="calendar" size="13"></i>${dateTime}</span>` : ''}
             </div>
             <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
@@ -918,6 +925,12 @@
           </div>
           ${mod.notes ? `<p class="module-desc">${mod.notes}</p>` : ''}`;
         card.querySelector('.btn-edit-custom').addEventListener('click', () => openFormModal('rental', mod));
+        card.querySelector('.btn-rental-heart').addEventListener('click', async () => {
+          mod.favorited = !mod.favorited;
+          const btn = card.querySelector('.btn-rental-heart');
+          btn.classList.toggle('is-favorited', mod.favorited);
+          await saveState();
+        });
         return card;
       };
 
@@ -1125,6 +1138,7 @@
           document.getElementById('form-job-link').value = d?.link || '';
           document.getElementById('form-job-date').value = d?.appliedDate || formatStr(new Date());
           document.getElementById('form-job-status').value = d?.status || '投遞中';
+          document.getElementById('form-job-notes').value = d?.notes || '';
         } else if (type === 'rental') {
           document.getElementById('form-rental-name').value = d?.name || '';
           document.getElementById('form-rental-link').value = d?.link || '';
@@ -1221,7 +1235,8 @@
             type: 'job', company, position,
             link: document.getElementById('form-job-link').value.trim(),
             appliedDate: document.getElementById('form-job-date').value,
-            status: document.getElementById('form-job-status').value
+            status: document.getElementById('form-job-status').value,
+            notes: document.getElementById('form-job-notes').value.trim()
           };
         } else if (currentFormType === 'rental') {
           const name = document.getElementById('form-rental-name').value.trim();

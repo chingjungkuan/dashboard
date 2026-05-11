@@ -345,6 +345,11 @@ main {
 .card.type-gym {
   padding-top: 1.5rem;
 }
+
+/* ── 自訂模組卡片（job / rental / gym mod）四邊 24px ── */
+.custom-module-card {
+  padding: 1.5rem;
+}
 .card.type-gym .card-title {
   font-size: 2.8rem;
   line-height: 1;
@@ -894,6 +899,12 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   background: rgba(52, 211, 153, 0.15);
   color: #34d399;
 }
+
+/* ★ 租屋愛心按鈕 */
+.btn-rental-heart { color: var(--text-muted); }
+.btn-rental-heart:hover { color: #ff6b8a; }
+.btn-rental-heart.is-favorited { color: #ff2d55; }
+.btn-rental-heart.is-favorited svg { fill: #ff2d55; stroke: #ff2d55; }
 
 /* icon 與公司名稱同行 */
 .job-header-main {
