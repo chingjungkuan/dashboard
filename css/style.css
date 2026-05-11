@@ -525,6 +525,9 @@ main {
   position: relative;
   outline: none;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 .calendar-cell:hover:not(.empty):not(.out-of-range) {
@@ -561,6 +564,12 @@ main {
   border-color: var(--accent-pink);
   color: var(--accent-pink);
   background: rgba(255, 0, 85, 0.06);
+}
+#btn-gym-planned-days:hover,
+.gm-planned-btn:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  background: rgba(0, 240, 255, 0.06);
 }
 
 /* ★ 休息日 chips（Modal 內） */

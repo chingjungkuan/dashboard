@@ -111,9 +111,14 @@
                 <button id="cal-next"><i data-lucide="chevron-right" size="18"></i></button>
               </div>
               <div class="calendar-grid" id="cal-grid"></div>
-              <button class="btn-rest-days" id="btn-gym-rest-days">
-                <i data-lucide="ban" size="13"></i>無法運動日
-              </button>
+              <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+                <button class="btn-rest-days" id="btn-gym-rest-days" style="flex:1;">
+                  <i data-lucide="ban" size="13"></i>無法運動日
+                </button>
+                <button class="btn-rest-days" id="btn-gym-planned-days" style="flex:1;">
+                  <i data-lucide="calendar-check" size="13"></i>預計運動日
+                </button>
+              </div>
             </div>
           </div>
 
@@ -233,6 +238,9 @@
           </label>
           <label class="form-label">房源連結
             <input type="url" class="form-input" id="form-rental-link" placeholder="https://...">
+          </label>
+          <label class="form-label">Google Map
+            <input type="url" class="form-input" id="form-rental-map" placeholder="https://maps.google.com/...">
           </label>
           <label class="form-label">地址
             <input type="text" class="form-input" id="form-rental-address" placeholder="例：台北市信義區...">
@@ -382,6 +390,34 @@
         <div class="modal-footer-actions">
           <button class="btn-cancel" id="btn-rest-cancel">取消</button>
           <button class="btn-save" id="btn-rest-save">確認</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Modal 7：預計運動日
+  ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="modal-planned-days">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">預計運動日</h3>
+        <button class="btn-icon" id="btn-planned-close"><i data-lucide="x" size="18"></i></button>
+      </div>
+      <div class="modal-body" style="gap:1.25rem;">
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:-0.25rem;">選取的日期在行事曆上會顯示為藍色框線。</p>
+        <div id="planned-days-chips" class="rest-days-chips">
+          <!-- chips injected by JS -->
+        </div>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <input type="date" class="form-input" id="planned-day-input" style="flex:1;">
+          <button class="btn-save" id="btn-planned-add" style="white-space:nowrap;padding:0.55rem 1rem;">新增</button>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;">
+        <div class="modal-footer-actions">
+          <button class="btn-cancel" id="btn-planned-cancel">取消</button>
+          <button class="btn-save" id="btn-planned-save">確認</button>
         </div>
       </div>
     </div>
@@ -586,21 +622,71 @@
         openRestDaysModal(appData.gym);
       });
 
-      // ── 長按事件 helper ───────────────────────────────
-      // onTap：短按；onLongPress：長按（500ms）
-      // 用 click 取代 mousedown/mouseup，避免 iOS PWA 在 touch 結束後
-      // 額外觸發合成 mouse 事件，導致 onTap() 被呼叫兩次
-      const attachCellPress = (cell, onTap, onLongPress) => {
-        let timer = null, fired = false;
-        cell.addEventListener('touchstart', () => {
-          fired = false;
-          timer = setTimeout(() => { fired = true; onLongPress(); }, 500);
-        }, { passive: true });
-        cell.addEventListener('touchend',  () => { clearTimeout(timer); }, { passive: true });
-        cell.addEventListener('touchmove', () => { clearTimeout(timer); fired = true; }, { passive: true });
-        cell.addEventListener('click',     () => { if (!fired) onTap(); fired = false; });
-        cell.addEventListener('contextmenu', e => e.preventDefault());
+      // 預計運動日 Modal
+      // ════════════════════════════════════════════════
+      let _plannedTarget = null;
+      let _plannedTemp   = [];
+
+      const renderPlannedChips = () => {
+        const container = document.getElementById('planned-days-chips');
+        if (!container) return;
+        if (_plannedTemp.length === 0) {
+          container.innerHTML = `<p style="font-size:0.82rem;color:var(--text-muted);">尚未設定任何預計運動日</p>`;
+          return;
+        }
+        container.innerHTML = '';
+        [..._plannedTemp].sort().forEach(ds => {
+          const chip = document.createElement('div');
+          chip.className = 'rest-chip';
+          chip.innerHTML = `<span>${ds}</span><button class="rest-chip-remove" data-ds="${ds}"><i data-lucide="x" size="12"></i></button>`;
+          chip.querySelector('.rest-chip-remove').addEventListener('click', () => {
+            _plannedTemp = _plannedTemp.filter(d => d !== ds);
+            renderPlannedChips();
+            lucide.createIcons();
+          });
+          container.appendChild(chip);
+        });
+        lucide.createIcons();
       };
+
+      const openPlannedDaysModal = (gymRef) => {
+        _plannedTarget = gymRef;
+        _plannedTemp   = [...(gymRef.planned || [])];
+        document.getElementById('planned-day-input').value = '';
+        renderPlannedChips();
+        document.getElementById('modal-planned-days').classList.add('active');
+      };
+
+      const closePlannedDaysModal = () => {
+        document.getElementById('modal-planned-days').classList.remove('active');
+        _plannedTarget = null; _plannedTemp = [];
+      };
+
+      document.getElementById('btn-planned-close').addEventListener('click', closePlannedDaysModal);
+      document.getElementById('btn-planned-cancel').addEventListener('click', closePlannedDaysModal);
+      document.getElementById('modal-planned-days').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-planned-days')) closePlannedDaysModal();
+      });
+
+      document.getElementById('btn-planned-add').addEventListener('click', () => {
+        const val = document.getElementById('planned-day-input').value;
+        if (!val) return;
+        if (!_plannedTemp.includes(val)) { _plannedTemp.push(val); renderPlannedChips(); }
+        document.getElementById('planned-day-input').value = '';
+      });
+
+      document.getElementById('btn-planned-save').addEventListener('click', async () => {
+        if (!_plannedTarget) return;
+        _plannedTarget.planned = [..._plannedTemp];
+        closePlannedDaysModal();
+        renderCalendar();
+        renderCustomModules();
+        await saveState();
+      });
+
+      document.getElementById('btn-gym-planned-days').addEventListener('click', () => {
+        openPlannedDaysModal(appData.gym);
+      });
 
       // 主行事曆
       let viewDate = new Date();
@@ -628,35 +714,24 @@
             if (ds === todayStr) cell.classList.add('today');
             if (appData.gym.records.includes(ds)) cell.classList.add('active');
             if ((appData.gym.planned || []).includes(ds)) cell.classList.add('planned');
-            attachCellPress(cell,
-              // 短按：切換打卡
-              () => {
-                if (cell.classList.contains('active')) {
-                  const idx = appData.gym.records.indexOf(ds);
-                  if (idx > -1) {
-                    openConfirmModal(
-                      '取消打卡？',
-                      `確定要移除 <strong>${ds}</strong> 的打卡紀錄嗎？`,
-                      '確定移除',
-                      async () => {
-                        appData.gym.records.splice(idx, 1);
-                        cell.classList.remove('active');
-                        saveState(); updateGymUI();
-                      }
-                    );
-                  }
-                } else if (appData.gym.records.length < appData.gym.total) { appData.gym.records.push(ds); cell.classList.add('active'); saveState(); updateGymUI(); }
-                else { showToast('您已達使用次數上限！', 'warning'); }
-              },
-              // 長按：切換計畫
-              () => {
-                if (!appData.gym.planned) appData.gym.planned = [];
-                const idx = appData.gym.planned.indexOf(ds);
-                if (idx > -1) { appData.gym.planned.splice(idx, 1); cell.classList.remove('planned'); }
-                else { appData.gym.planned.push(ds); cell.classList.add('planned'); }
-                saveState();
-              }
-            );
+            cell.addEventListener('click', () => {
+              if (cell.classList.contains('active')) {
+                const idx = appData.gym.records.indexOf(ds);
+                if (idx > -1) {
+                  openConfirmModal(
+                    '取消打卡？',
+                    `確定要移除 <strong>${ds}</strong> 的打卡紀錄嗎？`,
+                    '確定移除',
+                    async () => {
+                      appData.gym.records.splice(idx, 1);
+                      cell.classList.remove('active');
+                      saveState(); updateGymUI();
+                    }
+                  );
+                }
+              } else if (appData.gym.records.length < appData.gym.total) { appData.gym.records.push(ds); cell.classList.add('active'); saveState(); updateGymUI(); }
+              else { showToast('您已達使用次數上限！', 'warning'); }
+            });
           }
           grid.appendChild(cell);
         }
@@ -710,9 +785,14 @@
               <button class="gm-next"><i data-lucide="chevron-right" size="18"></i></button>
             </div>
             <div class="calendar-grid gm-grid"></div>
-            <button class="btn-rest-days gm-rest-btn">
-              <i data-lucide="ban" size="13"></i>無法運動日
-            </button>
+            <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+              <button class="btn-rest-days gm-rest-btn" style="flex:1;">
+                <i data-lucide="ban" size="13"></i>無法運動日
+              </button>
+              <button class="btn-rest-days gm-planned-btn" style="flex:1;">
+                <i data-lucide="calendar-check" size="13"></i>預計運動日
+              </button>
+            </div>
           </div>`;
 
         card.querySelector('.btn-edit-custom').addEventListener('click', () => openFormModal('gym', mod));
@@ -747,36 +827,25 @@
               if (ds === todayStr) cell.classList.add('today');
               if ((mod.records || []).includes(ds)) cell.classList.add('active');
               if ((mod.planned || []).includes(ds)) cell.classList.add('planned');
-              attachCellPress(cell,
-                // 短按：切換打卡
-                () => {
-                  if (!mod.records) mod.records = [];
-                  if (cell.classList.contains('active')) {
-                    const idx = mod.records.indexOf(ds);
-                    if (idx > -1) {
-                      openConfirmModal(
-                        '取消打卡？',
-                        `確定要移除 <strong>${ds}</strong> 的打卡紀錄嗎？`,
-                        '確定移除',
-                        async () => {
-                          mod.records.splice(idx, 1);
-                          cell.classList.remove('active');
-                          updateStats(); saveState();
-                        }
-                      );
-                    }
-                  } else if (mod.records.length < mod.total) { mod.records.push(ds); cell.classList.add('active'); updateStats(); saveState(); }
-                  else { showToast('已達使用次數上限！', 'warning'); }
-                },
-                // 長按：切換計畫
-                () => {
-                  if (!mod.planned) mod.planned = [];
-                  const idx = mod.planned.indexOf(ds);
-                  if (idx > -1) { mod.planned.splice(idx, 1); cell.classList.remove('planned'); }
-                  else { mod.planned.push(ds); cell.classList.add('planned'); }
-                  saveState();
-                }
-              );
+              cell.addEventListener('click', () => {
+                if (!mod.records) mod.records = [];
+                if (cell.classList.contains('active')) {
+                  const idx = mod.records.indexOf(ds);
+                  if (idx > -1) {
+                    openConfirmModal(
+                      '取消打卡？',
+                      `確定要移除 <strong>${ds}</strong> 的打卡紀錄嗎？`,
+                      '確定移除',
+                      async () => {
+                        mod.records.splice(idx, 1);
+                        cell.classList.remove('active');
+                        updateStats(); saveState();
+                      }
+                    );
+                  }
+                } else if (mod.records.length < mod.total) { mod.records.push(ds); cell.classList.add('active'); updateStats(); saveState(); }
+                else { showToast('已達使用次數上限！', 'warning'); }
+              });
             }
             grid.appendChild(cell);
           }
@@ -785,6 +854,7 @@
         card.querySelector('.gm-prev').addEventListener('click', () => { gymModViewDates[mod.id].setMonth(gymModViewDates[mod.id].getMonth() - 1); renderModCal(); });
         card.querySelector('.gm-next').addEventListener('click', () => { gymModViewDates[mod.id].setMonth(gymModViewDates[mod.id].getMonth() + 1); renderModCal(); });
         card.querySelector('.gm-rest-btn').addEventListener('click', () => openRestDaysModal(mod));
+        card.querySelector('.gm-planned-btn').addEventListener('click', () => openPlannedDaysModal(mod));
 
         updateStats(); renderModCal();
         return card;
@@ -841,7 +911,10 @@
               <span class="status-badge status-rental-${sc}">${mod.status || '未看'}</span>
               ${dateTime ? `<span class="meta-text"><i data-lucide="calendar" size="13"></i>${dateTime}</span>` : ''}
             </div>
-            ${mod.link ? `<a href="${mod.link}" target="_blank" rel="noopener" class="module-link"><i data-lucide="external-link" size="14"></i>房源連結</a>` : ''}
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+              ${mod.link ? `<a href="${mod.link}" target="_blank" rel="noopener" class="module-link"><i data-lucide="external-link" size="14"></i>房源連結</a>` : ''}
+              ${mod.mapLink ? `<a href="${mod.mapLink}" target="_blank" rel="noopener" class="module-link"><i data-lucide="map-pin" size="14"></i>Google Map</a>` : ''}
+            </div>
           </div>
           ${mod.notes ? `<p class="module-desc">${mod.notes}</p>` : ''}`;
         card.querySelector('.btn-edit-custom').addEventListener('click', () => openFormModal('rental', mod));
@@ -853,7 +926,13 @@
         document.querySelectorAll('.custom-module-card').forEach(el => el.remove());
         const addBtn = document.getElementById('btn-add-module');
         const builtinTypes = ['gym', 'job', 'rental'];
-        appData.customModules.forEach(mod => {
+        const sortedModules = [...appData.customModules].sort((a, b) => {
+          if (a.type === 'rental' && b.type === 'rental') {
+            return (b.date || '') > (a.date || '') ? 1 : -1;
+          }
+          return 0;
+        });
+        sortedModules.forEach(mod => {
           let card;
           if (mod.type === 'gym') card = buildGymModCard(mod);
           else if (mod.type === 'job') card = buildJobCard(mod);
@@ -1049,6 +1128,7 @@
         } else if (type === 'rental') {
           document.getElementById('form-rental-name').value = d?.name || '';
           document.getElementById('form-rental-link').value = d?.link || '';
+          document.getElementById('form-rental-map').value = d?.mapLink || '';
           document.getElementById('form-rental-address').value = d?.address || '';
           document.getElementById('form-rental-rent').value = d?.rent || '';
           document.getElementById('form-rental-date').value = d?.viewingDate || '';
@@ -1150,6 +1230,7 @@
           modData = {
             type: 'rental', name,
             link: document.getElementById('form-rental-link').value.trim(),
+            mapLink: document.getElementById('form-rental-map').value.trim(),
             address: document.getElementById('form-rental-address').value.trim(),
             rent: rent ? parseInt(rent) : null,
             viewingDate: document.getElementById('form-rental-date').value,
