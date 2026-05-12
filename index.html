@@ -8,12 +8,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Lucy's">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" href="image/img_avatar.jpg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Poppins:wght@700&display=swap"
     rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="css/style.css">
@@ -25,14 +25,14 @@
 
   <header>
     <div class="brand">
-      <img src="apple-touch-icon.png" alt="Lucy icon" class="brand-img-icon">
-      Lucy Kuan
+      <img src="image/w_logo_name.svg" alt="Ching Jung logo" class="brand-logo">
     </div>
   </header>
 
   <main>
     <div class="dashboard-header">
-      <h1 class="dashboard-title">My Plan</h1>
+      <img src="image/img_avatar.jpg" alt="Lucy avatar" class="dashboard-avatar">
+      <h1 class="dashboard-title">Lucy's<br>Dashboard</h1>
     </div>
     <!-- Toast 通知（fixed，不佔 layout） -->
     <div id="toast" role="alert" aria-live="polite">
@@ -1037,7 +1037,7 @@
 
         if (viewType === 'dashboard') {
           dashboard.style.display = 'grid';
-          dashboardHeader.style.display = 'block';
+          dashboardHeader.style.display = 'flex';
           categoryView.style.display = 'none';
         } else {
           dashboard.style.display = 'none';
