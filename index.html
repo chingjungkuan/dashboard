@@ -467,7 +467,12 @@
         <button class="btn-icon" id="btn-pocket-close"><i data-lucide="x" size="18"></i></button>
       </div>
       <div class="modal-body" style="gap:1rem;">
-        <div class="pocket-modal-meta" id="pocket-modal-meta"></div>
+        <label class="form-label">口味分類
+          <select class="form-input form-select" id="pocket-cuisine-input"></select>
+        </label>
+        <label class="form-label">地區
+          <select class="form-input form-select" id="pocket-district-input"></select>
+        </label>
         <label class="form-label">吃過了？
           <div class="pocket-visited-toggle">
             <button class="pocket-toggle-btn" id="pocket-toggle-visited"></button>
@@ -1735,9 +1740,20 @@
         if (!item) return;
         editingPocketId = id;
         document.getElementById('pocket-modal-title').textContent = item.name;
-        document.getElementById('pocket-modal-meta').innerHTML = `
-          <span class="pocket-tag pocket-tag-cuisine">${item.cuisine}</span>
-          <span class="pocket-tag pocket-tag-district">${item.district}</span>`;
+
+        // 填入口味下拉選單
+        const cuisineOptions = [...new Set(appData.pocketList.map(p => p.cuisine))].sort();
+        const cSelect = document.getElementById('pocket-cuisine-input');
+        cSelect.innerHTML = cuisineOptions.map(c =>
+          `<option value="${c}"${c === item.cuisine ? ' selected' : ''}>${c}</option>`
+        ).join('');
+
+        // 填入地區下拉選單
+        const districtOptions = [...new Set(appData.pocketList.map(p => p.district))].sort();
+        const dSelect = document.getElementById('pocket-district-input');
+        dSelect.innerHTML = districtOptions.map(d =>
+          `<option value="${d}"${d === item.district ? ' selected' : ''}>${d}</option>`
+        ).join('');
         document.getElementById('pocket-note-input').value = item.note || '';
         const toggleBtn = document.getElementById('pocket-toggle-visited');
         toggleBtn.textContent = item.visited ? '✓ 吃過了' : '還沒吃';
@@ -1773,6 +1789,8 @@
         if (idx === -1) return;
         const isVisited = document.getElementById('pocket-toggle-visited').dataset.visited === '1';
         appData.pocketList[idx].visited = isVisited;
+        appData.pocketList[idx].cuisine = document.getElementById('pocket-cuisine-input').value;
+        appData.pocketList[idx].district = document.getElementById('pocket-district-input').value;
         appData.pocketList[idx].note = document.getElementById('pocket-note-input').value.trim();
         closePocketModal();
         renderPocketGrid();
