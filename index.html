@@ -15,7 +15,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Poppins:wght@700&display=swap"
     rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="js/lucide.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -166,12 +166,21 @@
         <span class="pocket-count" id="pocket-count"></span>
       </div>
 
+      <!-- Tab bar -->
+      <div class="pocket-tabs">
+        <button class="pocket-tab active" id="tab-food">美食</button>
+        <button class="pocket-tab" id="tab-sight">景點</button>
+      </div>
+
       <!-- Filter bar -->
       <div class="pocket-filters">
         <select class="pocket-filter-select" id="filter-cuisine">
           <option value="">所有口味</option>
         </select>
-        <select class="pocket-filter-select" id="filter-district">
+        <select class="pocket-filter-select" id="filter-city">
+          <option value="">所有城市</option>
+        </select>
+        <select class="pocket-filter-select" id="filter-district" style="display:none;">
           <option value="">所有地區</option>
         </select>
         <button class="pocket-filter-btn active" id="filter-all">全部</button>
@@ -179,7 +188,7 @@
         <button class="pocket-filter-btn" id="filter-visited">吃過了</button>
       </div>
 
-      <!-- Restaurant cards grid -->
+      <!-- Cards grid -->
       <div class="pocket-grid" id="pocket-grid"></div>
     </div>
   </main>
@@ -467,11 +476,25 @@
         <button class="btn-icon" id="btn-pocket-close"><i data-lucide="x" size="18"></i></button>
       </div>
       <div class="modal-body" style="gap:1rem;">
-        <label class="form-label">口味分類
-          <select class="form-input form-select" id="pocket-cuisine-input"></select>
+        <a id="pocket-map-link" href="#" target="_blank" rel="noopener" class="btn-cancel" style="display:none;align-items:center;gap:0.4rem;justify-content:center;">
+          <i data-lucide="map-pin" size="14"></i> Google Maps
+        </a>
+        <label class="form-label">類別
+          <div class="pocket-type-toggle">
+            <button class="pocket-type-btn active" data-type="food">美食</button>
+            <button class="pocket-type-btn" data-type="sight">景點</button>
+          </div>
         </label>
-        <label class="form-label">地區
-          <select class="form-input form-select" id="pocket-district-input"></select>
+        <label class="form-label" id="pocket-cuisine-label">口味分類
+          <select class="form-input form-select" id="pocket-cuisine-input"></select>
+          <input class="form-input" id="pocket-cuisine-new" placeholder="輸入新分類名稱…" autocomplete="off" style="display:none;margin-top:0.5rem;">
+        </label>
+        <label class="form-label">城市 ／ 地區
+          <div style="display:flex;gap:0.5rem;">
+            <select class="form-input form-select" id="pocket-city-input" style="flex:1;min-width:0;"></select>
+            <select class="form-input form-select" id="pocket-district-input" style="flex:1;min-width:0;"></select>
+          </div>
+          <input class="form-input" id="pocket-district-new" placeholder="輸入新地區名稱…" autocomplete="off" style="display:none;margin-top:0.5rem;">
         </label>
         <label class="form-label">吃過了？
           <div class="pocket-visited-toggle">
@@ -484,9 +507,6 @@
       </div>
       <div class="modal-footer" style="justify-content:flex-end;">
         <div class="modal-footer-actions">
-          <a id="pocket-map-link" href="#" target="_blank" rel="noopener" class="btn-cancel" style="display:none;align-items:center;gap:0.4rem;">
-            <i data-lucide="map-pin" size="14"></i> Google Maps
-          </a>
           <button class="btn-save" id="btn-pocket-save">儲存</button>
         </div>
       </div>
@@ -523,99 +543,99 @@
       // ── 預設資料 ──────────────────────────────────────
       const today2m = new Date(); today2m.setMonth(today2m.getMonth() + 2); today2m.setDate(today2m.getDate() - 1);
       const defaultPocketList = [
-        { id: 'p001', name: '明水然・樂-信義松菸店', cuisine: '台式', district: '台北信義區', visited: false, note: '', url: '' },
-        { id: 'p002', name: 'PIERRE HERMÉ 台北新光三越信義A9店', cuisine: '甜品/甜點', district: '台北信義區', visited: false, note: '維尼馬卡龍', url: '' },
-        { id: 'p003', name: '虎頭山觀景平台', cuisine: '景點/其他', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p004', name: 'Kinki Curry 香料咖喱、炸物、啤酒', cuisine: '咖哩', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p005', name: '家辣麻辣鴨血/銀牌牛肉麵～東湖店', cuisine: '火鍋', district: '台北內湖區', visited: false, note: '', url: '' },
-        { id: 'p006', name: '排圓餐盒', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p007', name: '實話咖哩 日式熟成咖哩專賣 南軟店', cuisine: '咖哩', district: '台北南港區', visited: false, note: '', url: '' },
-        { id: 'p008', name: '曜日.早午餐 餐酒館（寵物友善）', cuisine: '早午餐', district: '台北其他', visited: false, note: '有法鬥', url: '' },
-        { id: 'p009', name: '根牛棧STEAK', cuisine: '牛排/鐵板', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p010', name: 'DOUBLE SINGLE', cuisine: '咖啡廳', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p011', name: '勁呷 精緻韓式嫩豆腐煲/韓式燒烤專賣店', cuisine: '韓式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p012', name: '西湖水產', cuisine: '海鮮', district: '台北內湖區', visited: false, note: '', url: '' },
-        { id: 'p013', name: 'MERCER BRUNCH TAIWAN', cuisine: '早午餐', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p014', name: '南島餐桌', cuisine: '台式', district: '其他', visited: false, note: '', url: '' },
-        { id: 'p015', name: '松山土窯羊肉', cuisine: '台式', district: '台北松山區', visited: false, note: '', url: '' },
-        { id: 'p016', name: '龍洞灣岬步道', cuisine: '景點/其他', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p017', name: '富善雞湯麵舖（松山光復店）', cuisine: '台式', district: '台北松山區', visited: false, note: '', url: '' },
-        { id: 'p018', name: '富善雞湯麵舖（萬華昆明店）', cuisine: '台式', district: '台北萬華區', visited: false, note: '', url: '' },
-        { id: 'p019', name: 'Costumice Café', cuisine: '咖啡廳', district: '台北其他', visited: false, note: '無定位服務', url: '' },
-        { id: 'p020', name: '在是吉。台所 ｜前鎮區 小餐館', cuisine: '日式', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p021', name: 'Giraffa Curry Pan', cuisine: '咖哩', district: '日本', visited: false, note: '', url: '' },
-        { id: 'p022', name: 'Kamakura Chacha Komachi Street', cuisine: '景點/其他', district: '日本', visited: false, note: '', url: '' },
-        { id: 'p023', name: '鈺饌鍋貼', cuisine: '小吃', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p024', name: '興隆居', cuisine: '台式', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p025', name: '梁季港式小火鍋', cuisine: '港式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p026', name: '浪町壽喜屋', cuisine: '日式', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p027', name: 'AUFGLET Taipei', cuisine: '咖啡廳', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p028', name: 'FINE PASTA', cuisine: '義式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p029', name: '十十燒肉苑', cuisine: '燒肉/燒烤', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p030', name: '黑馬小廚', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p031', name: "Time's Eat 時時｜義大利餐廳", cuisine: '義式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p032', name: '華承軒 麵館', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p033', name: 'HI MATE !', cuisine: '早午餐', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p034', name: '偷聽咖啡thauthiann', cuisine: '咖啡廳', district: '台灣其他', visited: false, note: '', url: '' },
-        { id: 'p035', name: '一間手烤', cuisine: '燒肉/燒烤', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p036', name: '老撈麻辣火鍋鴛鴦火鍋', cuisine: '火鍋', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p037', name: '東風東新疆大盤雞 南港店', cuisine: '台式', district: '台北南港區', visited: false, note: '', url: '' },
-        { id: 'p038', name: '飛奇護理沙龍(昆陽店)', cuisine: '景點/其他', district: '台北南港區', visited: false, note: '', url: '' },
-        { id: 'p039', name: '寵佑宮', cuisine: '景點/其他', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p040', name: 'HONKI Bistro', cuisine: '早午餐', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p041', name: '小孩吃素旗艦店', cuisine: '素食', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p042', name: "L'idée Sweet 時甜（敦化店）", cuisine: '甜品/甜點', district: '台北大安區', visited: false, note: '', url: '' },
-        { id: 'p043', name: '白石畫廊 Whitestone Gallery', cuisine: '景點/其他', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p044', name: '焰禾｜炒飯 雞湯麵', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p045', name: '禾記茶餐廳大安店', cuisine: '港式', district: '台北大安區', visited: false, note: '', url: '' },
-        { id: 'p046', name: '釜山湯飯 부산국밥', cuisine: '韓式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p047', name: '田鄉池上飯包', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p048', name: '傳說水煎包', cuisine: '小吃', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p049', name: 'Greenriver Roastery．Archive', cuisine: '咖啡廳', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p050', name: '雞湯榮麵食館', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p051', name: '三姐妹水餃鍋貼', cuisine: '小吃', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p052', name: '陳食滋味', cuisine: '台式', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p053', name: '渡邊珈琲製造所', cuisine: '咖啡廳', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p054', name: '三川海鮮粥＆麵店', cuisine: '海鮮', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p055', name: '周家蔥油餅', cuisine: '小吃', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p056', name: '小隱茶庵 潮境', cuisine: '景點/其他', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p057', name: 'SEN', cuisine: '日式', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p058', name: '基隆廟口夜市', cuisine: '小吃', district: '基隆', visited: false, note: '', url: '' },
-        { id: 'p059', name: '一號地鍋雞', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p060', name: '巢屋', cuisine: '咖啡廳', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p061', name: '台中藏阿胖烘焙麵包坊（羅芙）', cuisine: '甜品/甜點', district: '台中', visited: false, note: '', url: '' },
-        { id: 'p062', name: 'Kevin 舒食', cuisine: '素食', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p063', name: 'Fuk Coffee', cuisine: '咖啡廳', district: '日本', visited: false, note: '', url: '' },
-        { id: 'p064', name: '小燉食室', cuisine: '台式', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p065', name: '籌學費餐廳', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p066', name: '屏東双園火鍋', cuisine: '火鍋', district: '其他', visited: false, note: '', url: '' },
-        { id: 'p067', name: '焼肉 アカタン', cuisine: '燒肉/燒烤', district: '日本', visited: false, note: '', url: '' },
-        { id: 'p068', name: '樂野食', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p069', name: '炙り庵steak牛排-台北民權店', cuisine: '牛排/鐵板', district: '台北中山區', visited: false, note: '', url: '' },
-        { id: 'p070', name: '謙稻 sign in', cuisine: '台式', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p071', name: 'Brekkie', cuisine: '早午餐', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p072', name: '老潮派 台灣麵食館-文龍東店', cuisine: '台式', district: '高雄', visited: false, note: '', url: '' },
-        { id: 'p073', name: 'La Botega Taipei', cuisine: '義式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p074', name: '有有1969', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p075', name: '有有1969-二店', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p076', name: '盧記麻辣火鍋', cuisine: '火鍋', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p077', name: '一蘭 天神西通店', cuisine: '日式', district: '日本', visited: false, note: '', url: '' },
-        { id: 'p078', name: '青沐（大安店）', cuisine: '台式', district: '台北大安區', visited: false, note: '', url: '' },
-        { id: 'p079', name: '一樣 YEE YUNG', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p080', name: '丸麵舖', cuisine: '台式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p081', name: '筑梅鍋燒麵店', cuisine: '日式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p082', name: '燒石鼎石頭小火鍋-內湖店', cuisine: '火鍋', district: '台北內湖區', visited: false, note: '', url: '' },
-        { id: 'p083', name: '燒石鼎石頭小火鍋-信義店', cuisine: '火鍋', district: '台北信義區', visited: false, note: '', url: '' },
-        { id: 'p084', name: '紀々花 NONOKA CAFE BISTRO', cuisine: '咖啡廳', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p085', name: '鍾記蒜香鹹酥雞（台北永春店）', cuisine: '小吃', district: '台北大安區', visited: false, note: '', url: '' },
-        { id: 'p086', name: 'FUGU Japanese Gastropub', cuisine: '日式', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p087', name: 'Some Some', cuisine: '咖啡廳', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p088', name: 'PLATBUM-ALBUM STORE KPOP專輯店', cuisine: '景點/其他', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p089', name: 'Herring Studio 鯡魚工作室', cuisine: '景點/其他', district: '台北其他', visited: false, note: '', url: '' },
-        { id: 'p090', name: '路易威登 六本木新城店', cuisine: '景點/其他', district: '日本', visited: false, note: '', url: '' },
-        { id: 'p091', name: 'HUMAN MADE 原宿', cuisine: '景點/其他', district: '日本', visited: false, note: '', url: '' },
-        { id: 'p092', name: 'UGG', cuisine: '景點/其他', district: '日本', visited: false, note: '', url: '' },
-        { id: 'p093', name: 'BEAMS JAPAN 太宰府', cuisine: '景點/其他', district: '日本', visited: false, note: '', url: '' }
+        { id: 'p001', name: '明水然・樂-信義松菸店', cuisine: '台式', city: '台北', district: '信義區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%98%8E%E6%B0%B4%E7%84%B6%E3%83%BB%E6%A8%82-%E4%BF%A1%E7%BE%A9%E6%9D%BE%E8%8F%B8%E5%BA%97(%E5%8F%B0%E5%8C%97%E6%9D%BE%E8%8F%B8%E5%BA%97)/data=!4m2!3m1!1s0x3442ab67eb0d3cf7:0x7a38b2a7f6899357' },
+        { id: 'p002', name: 'PIERRE HERMÉ 台北新光三越信義A9店', cuisine: '甜品/甜點', city: '台北', district: '信義區', visited: false, note: '維尼馬卡龍', url: 'https://www.google.com/maps/place/PIERRE+HERM%C3%89+%E5%8F%B0%E5%8C%97%E6%96%B0%E5%85%89%E4%B8%89%E8%B6%8A%E4%BF%A1%E7%BE%A9A9%E5%BA%97/data=!4m2!3m1!1s0x3442ab0022554a31:0xddee2dfc3fe1680' },
+        { id: 'p003', name: '虎頭山觀景平台', cuisine: '景點/其他', city: '南投', district: '埔里鎮', visited: false, note: '', url: 'https://www.google.com/maps/place/%E8%99%8E%E9%A0%AD%E5%B1%B1%E8%A7%80%E6%99%AF%E5%B9%B3%E5%8F%B0/data=!4m2!3m1!1s0x3468db11949aeb7f:0xb2ae8d216cc9c1a7' },
+        { id: 'p004', name: 'Kinki Curry 香料咖喱、炸物、啤酒', cuisine: '咖哩', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/Kinki+Curry+%E9%A6%99%E6%96%99%E5%92%96%E5%96%B1%E3%80%81%E7%82%B8%E7%89%A9%E3%80%81%E5%95%A4%E9%85%92/data=!4m2!3m1!1s0x3442a900138b59b3:0x8a2bb37b16102d92' },
+        { id: 'p005', name: '家辣麻辣鴨血/銀牌牛肉麵～東湖店', cuisine: '火鍋', city: '台北', district: '內湖區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%AE%B6%E8%BE%A3%E9%BA%BB%E8%BE%A3%E9%B4%A8%E8%A1%80%2F%E9%8A%80%E7%89%8C%E7%89%9B%E8%82%89%E9%BA%B5%EF%BD%9E%E6%9D%B1%E6%B9%96%E5%BA%97/data=!4m2!3m1!1s0x3442ad271de59e1d:0x323f11d44d213ba' },
+        { id: 'p006', name: '排圓餐盒', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%8E%92%E5%9C%93%E9%A4%90%E7%9B%92%EF%BC%88%E7%8F%BE%E5%A0%B4%E5%96%AE%E9%87%8F%E7%9C%BE%E5%A4%9A%E9%9B%BB%E8%A9%B1%E7%84%A1%E6%B3%95%E6%8E%A5%E8%81%BD%E6%95%AC%E8%AB%8B%E8%A6%8B%E8%AB%92%EF%BC%89/data=!4m2!3m1!1s0x34691717e0449c93:0x68c2d0d31e6f896d' },
+        { id: 'p007', name: '實話咖哩 日式熟成咖哩專賣 南軟店', cuisine: '咖哩', city: '台北', district: '南港區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%AF%A6%E8%A9%B1%E5%92%96%E5%93%A9+%E6%97%A5%E5%BC%8F%E7%86%9F%E6%88%90%E5%92%96%E5%93%A9%E5%B0%88%E8%B3%A3+%E5%8D%97%E8%BB%9F%E5%BA%97/data=!4m2!3m1!1s0x3442ab2a95abb05b:0x48c3c9422d87c861' },
+        { id: 'p008', name: '曜日.早午餐 餐酒館（寵物友善）', cuisine: '早午餐', city: '台北', district: '其他', visited: false, note: '有法鬥', url: 'https://www.google.com/maps/place/%E6%9B%9C%E6%97%A5.%E6%97%A9%E5%8D%88%E9%A4%90+%E9%A4%90%E9%85%92%E9%A4%A8%EF%BC%88%E5%AF%B5%E7%89%A9%E5%8F%8B%E5%96%84%EF%BC%89/data=!4m2!3m1!1s0x3442abd1f30ca125:0x9e24f2fc7662aca8' },
+        { id: 'p009', name: '根牛棧STEAK', cuisine: '牛排/鐵板', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%A0%B9%E7%89%9B%E6%A3%A7STEAK/data=!4m2!3m1!1s0x3442a9fe02f5bcc5:0x9f439a78f76ef916' },
+        { id: 'p010', name: 'DOUBLE SINGLE', cuisine: '咖啡廳', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/DOUBLE+SINGLE/data=!4m2!3m1!1s0x3442a9686ac0807b:0x6b85980d2de78a89' },
+        { id: 'p011', name: '勁呷 精緻韓式嫩豆腐煲/韓式燒烤專賣店', cuisine: '韓式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%8B%81%E5%91%B7+%E7%B2%BE%E7%B7%BB%E9%9F%93%E5%BC%8F%E5%AB%A9%E8%B1%86%E8%85%90%E7%85%B2%2F%E9%9F%93%E5%BC%8F%E7%87%92%E7%83%A4%E5%B0%88%E8%B3%A3%E5%BA%97/data=!4m2!3m1!1s0x3442ab003d3fe49d:0x3f1b052f5c8a1776' },
+        { id: 'p012', name: '西湖水產', cuisine: '海鮮', city: '台北', district: '內湖區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E8%A5%BF%E6%B9%96%E6%B0%B4%E7%94%A2/data=!4m2!3m1!1s0x3442aba13d398d59:0x2b943e48fe106962' },
+        { id: 'p013', name: 'MERCER BRUNCH TAIWAN', cuisine: '早午餐', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/MERCER+BRUNCH+TAIWAN/data=!4m2!3m1!1s0x3442ab0017435a6b:0xaa9814d743578d3c' },
+        { id: 'p014', name: '南島餐桌', cuisine: '台式', city: '高雄', district: '左營區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%8D%97%E5%B3%B6%E9%A4%90%E6%A1%8C/data=!4m2!3m1!1s0x346e05001fea28ed:0x2ab7a26f77ed965c' },
+        { id: 'p015', name: '松山土窯羊肉', cuisine: '台式', city: '台北', district: '松山區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%9D%BE%E5%B1%B1%E5%9C%9F%E7%AA%AF%E7%BE%8A%E8%82%89%EF%BC%88%E5%83%85%E6%8E%A5%E5%8F%97%E9%9B%BB%E8%A9%B1%E8%A8%82%E4%BD%8D%EF%BC%89/data=!4m2!3m1!1s0x346ebe369c73a631:0x7f42ecb426b41a1a' },
+        { id: 'p016', name: '龍洞灣岬步道', cuisine: '景點/其他', city: '新北', district: '貢寮區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E9%BE%8D%E6%B4%9E%E7%81%A3%E5%B2%AC%E6%AD%A5%E9%81%93/data=!4m2!3m1!1s0x345d437460c5fe9d:0x1224d84a9a106391' },
+        { id: 'p017', name: '富善雞湯麵舖（松山光復店）', cuisine: '台式', city: '台北', district: '松山區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%AF%8C%E5%96%84%E9%9B%9E%E6%B9%AF%E9%BA%B5%E8%88%96-%E9%9C%9C%E6%B7%87%E6%B7%8B%E3%80%81%E8%B1%86%E8%8A%B1%E3%80%81%E9%A3%B2%E6%96%99%E5%90%83%E5%88%B0%E9%A3%BD%EF%BC%88%E6%9D%BE%E5%B1%B1%E5%85%89%E5%BE%A9%E5%BA%97%EF%BC%89%E6%9D%BE%E5%B1%B1%E7%BE%8E%E9%A3%9F+%E6%9D%BE%E5%B1%B1%E5%B0%8F%E5%90%83+%E6%9D%BE%E5%B1%B1restaurant+%E6%9D%BE%E5%B1%B1%E5%90%83%E5%88%B0%E9%A3%BD+%E5%8D%97%E4%BA%AC%E4%B8%89%E6%B0%91%E7%BE%8E%E9%A3%9F+%E5%8D%97%E4%BA%AC%E4%B8%89%E6%B0%91%E9%9B%9E%E6%B9%AF%E9%BA%B5/data=!4m2!3m1!1s0x3442ab0052818025:0x928ee6cb08fee1a6' },
+        { id: 'p018', name: '富善雞湯麵舖（萬華昆明店）', cuisine: '台式', city: '台北', district: '萬華區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%AF%8C%E5%96%84%E9%9B%9E%E6%B9%AF%E9%BA%B5%E8%88%96-%E9%9C%9C%E6%B7%87%E6%B7%8B%E3%80%81%E8%B1%86%E8%8A%B1%E3%80%81%E9%A3%B2%E6%96%99%E5%90%83%E5%88%B0%E9%A3%BD%EF%BC%88%E8%90%AC%E8%8F%AF%E6%98%86%E6%98%8E%E5%BA%97%EF%BC%89/data=!4m2!3m1!1s0x3442a975aae0e7dd:0x7bb0bcfe082b1360' },
+        { id: 'p019', name: 'Costumice Café', cuisine: '咖啡廳', city: '台北', district: '其他', visited: false, note: '無定位服務', url: 'https://www.google.com/maps/place/Costumice+Caf%C3%A9/data=!4m2!3m1!1s0x3442abc46a8948f9:0x513ba16a14fc8453' },
+        { id: 'p020', name: '在是吉。台所 ｜前鎮區 小餐館', cuisine: '日式', city: '高雄', district: '前鎮區',visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%9C%A8%E6%98%AF%E5%90%89%E3%80%82%E5%8F%B0%E6%89%80+%EF%BD%9C%E5%89%8D%E9%8E%AE%E5%8D%80+%E5%B0%8F%E9%A4%90%E9%A4%A8/data=!4m2!3m1!1s0x346e050859afaedb:0x38b4114432ba625b' },
+        { id: 'p021', name: 'Giraffa Curry Pan', cuisine: '咖哩', city: '日本', district: '', visited: false, note: '', url: 'https://www.google.com/maps/place/Giraffa+Curry+Pan/data=!4m2!3m1!1s0x601845bb2916d811:0xd2503293d0d989d6' },
+        { id: 'p022', name: 'Kamakura Chacha Komachi Street', cuisine: '景點/其他', city: '日本', district: '', visited: false, note: '', url: 'https://www.google.com/maps/place/Kamakura+Chacha+Komachi+Street/data=!4m2!3m1!1s0x6018455480a89021:0x5b5093cccac5c2e3' },
+        { id: 'p023', name: '鈺饌鍋貼', cuisine: '小吃', city: '高雄', district: '三民區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E9%88%BA%E9%A5%8C%E9%8D%8B%E8%B2%BC/data=!4m2!3m1!1s0x346e0516b4a00037:0x688cfc15310fa77' },
+        { id: 'p024', name: '興隆居', cuisine: '台式', city: '高雄', district: '前金區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E8%88%88%E9%9A%86%E5%B1%85/data=!4m2!3m1!1s0x346e04630e2e9a21:0x3a80490248e30bbd' },
+        { id: 'p025', name: '梁季港式小火鍋', cuisine: '港式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%A2%81%E5%AD%A3%E6%B8%AF%E5%BC%8F%E5%B0%8F%E7%81%AB%E9%8D%8B/data=!4m2!3m1!1s0x3442a817c18a04d9:0xf51ee6513a261f60' },
+        { id: 'p026', name: '浪町壽喜屋', cuisine: '日式', city: '台中', district: '北區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%B5%AA%E7%94%BA%E5%A3%BD%E5%96%9C%E5%B1%8B(%E8%A8%82%E4%BD%8D%E8%AB%8B%E5%88%B0%E5%AE%98%E6%96%B9line)/data=!4m2!3m1!1s0x346917a4a3e8906f:0x39320fc155254799' },
+        { id: 'p027', name: 'AUFGLET Taipei', cuisine: '咖啡廳', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/AUFGLET+Taipei/data=!4m2!3m1!1s0x3442abab6f4cf545:0x2eefd9744f1e3643' },
+        { id: 'p028', name: 'FINE PASTA', cuisine: '義式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/FINE+PASTA/data=!4m2!3m1!1s0x3442a9c502507365:0xbcee158408726d20' },
+        { id: 'p029', name: '十十燒肉苑', cuisine: '燒肉/燒烤', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%8D%81%E5%8D%81%E7%87%92%E8%82%89%E8%8B%91/data=!4m2!3m1!1s0x3442a965fde0a165:0x1e2f50396916f41d' },
+        { id: 'p030', name: '黑馬小廚', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E9%BB%91%E9%A6%AC%E5%B0%8F%E5%BB%9A/data=!4m2!3m1!1s0x3442ab87069c9a35:0x80a5dac13b60cdbe' },
+        { id: 'p031', name: "Time's Eat 時時｜義大利餐廳", cuisine: '義式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/Time%27s+Eat+%E6%99%82%E6%99%82%EF%BD%9C%E7%BE%A9%E5%A4%A7%E5%88%A9%E9%A4%90%E5%BB%B3%EF%BD%9C%E8%A5%BF%E7%8F%AD%E7%89%99%E9%A4%90%E5%BB%B3%EF%BD%9C%E7%BE%A9%E5%A4%A7%E5%88%A9%E9%BA%B5%EF%BD%9C%E6%B5%B7%E9%AE%AE%E7%87%89%E9%A3%AF%EF%BD%9C%E6%8A%AB%E8%96%A9/data=!4m2!3m1!1s0x3442aea3479a1203:0xf54a0d566d1a80c6' },
+        { id: 'p032', name: '華承軒 麵館', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E8%8F%AF%E6%89%BF%E8%BB%92+%E9%BA%B5%E9%A4%A8/data=!4m2!3m1!1s0x3442a950b9c5bb9d:0xe7a756ddadf22068' },
+        { id: 'p033', name: 'HI MATE !', cuisine: '早午餐', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/HI+MATE+!%EF%BC%88%E4%BE%9B%E9%A4%90%E8%87%B315%EF%BC%9A30%EF%BC%89/data=!4m2!3m1!1s0x3442af77fa704559:0x9619ae3cc73625d5' },
+        { id: 'p034', name: '偷聽咖啡thauthiann', cuisine: '咖啡廳', city: '屏東', district: '滿州鄉', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%81%B7%E8%81%BD%E5%92%96%E5%95%A1thauthiann+(%E4%BC%91%E5%81%87%E4%BB%A5IG%E5%85%AC%E5%91%8A%E7%82%BA%E4%B8%BB)/data=!4m2!3m1!1s0x3471b570c1c66b11:0x8e9e627b28954fc5' },
+        { id: 'p035', name: '一間手烤', cuisine: '燒肉/燒烤', city: '高雄', district: '鳳山區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E4%B8%80%E9%96%93%E6%89%8B%E7%83%A4/data=!4m2!3m1!1s0x346e1ca4c5e393e9:0xf17fba3c5cb14c1' },
+        { id: 'p036', name: '老撈麻辣火鍋鴛鴦火鍋', cuisine: '火鍋', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E8%80%81%E6%92%88%E9%BA%BB%E8%BE%A3%E7%81%AB%E9%8D%8B%E9%B4%9B%E9%B4%A6%E7%81%AB%E9%8D%8B(Spicy+Hot+Pot)(%E3%83%9E%E3%83%BC%E3%83%A9%E3%83%BC%E9%8D%8B)/data=!4m2!3m1!1s0x3442ab22b7358aab:0x424f6173629e4db1' },
+        { id: 'p037', name: '東風東新疆大盤雞 南港店', cuisine: '台式', city: '台北', district: '南港區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%9D%B1%E9%A2%A8%E6%9D%B1%E6%96%B0%E7%96%86%E5%A4%A7%E7%9B%A4%E9%9B%9E+%E5%8D%97%E6%B8%AF%E5%BA%97/data=!4m2!3m1!1s0x3442abbd25f26b3b:0x85b4c238c592acea' },
+        { id: 'p038', name: '飛奇護理沙龍(昆陽店)', cuisine: '景點/其他', city: '台北', district: '南港區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E9%A3%9B%E5%A5%87%E8%AD%B7%E7%90%86%E6%B2%99%E9%BE%8D(%E6%98%86%E9%99%BD%E5%BA%97)/data=!4m2!3m1!1s0x3442ab701f672263:0xc36b77ac1b0305c8' },
+        { id: 'p039', name: '寵佑宮', cuisine: '景點/其他', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%AF%B5%E4%BD%91%E5%AE%AE+-+%E5%8F%B0%E7%81%A3%E7%AC%AC%E4%B8%80%E9%96%93%E5%AF%B5%E7%89%A9%E5%B0%88%E5%B1%AC%E5%AE%AE%E5%BB%9F+%EF%BC%88%E5%A4%A7%E7%A8%BB%E5%9F%95%E7%B1%8C%E5%82%99%E8%99%95%EF%BC%89%E8%AE%93%E4%BF%9D%E7%94%9F%E5%A4%A7%E5%B8%9D%E5%BA%87%E4%BD%91%E5%AF%B5%E7%89%A9%E5%AF%B6%E8%B2%9D%E5%80%91%EF%BC%9A%E6%89%8B%E8%A1%93%E9%A0%86%E5%88%A9%E3%80%81%E5%B9%B3%E5%AE%89%E3%80%81%E5%81%A5%E5%BA%B7%E3%80%81%E9%95%B7%E5%A3%BD/data=!4m2!3m1!1s0x3442a9d3f653c6b3:0x29180c9acc0f5afc' },
+        { id: 'p040', name: 'HONKI Bistro', cuisine: '早午餐', city: '高雄', district: '前鎮區', visited: false, note: '', url: 'https://www.google.com/maps/place/HONKI+Bistro/data=!4m2!3m1!1s0x346e038495540cef:0x551b67896207cc97' },
+        { id: 'p041', name: '小孩吃素旗艦店', cuisine: '素食', city: '高雄', district: '鼓山區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%B0%8F%E5%AD%A9%E5%90%83%E7%B4%A0%E6%97%97%E8%89%A6%E5%BA%97/data=!4m2!3m1!1s0x346e05dd148fd2a1:0x3503805caae8b03' },
+        { id: 'p042', name: "L'idée Sweet 時甜（敦化店）", cuisine: '甜品/甜點', city: '台北', district: '大安區', visited: false, note: '', url: 'https://www.google.com/maps/place/L%27id%C3%A9e+Sweet+%E6%99%82%E7%94%9C%EF%BC%88%E6%95%A6%E5%8C%96%E5%BA%97%EF%BC%89/data=!4m2!3m1!1s0x3442ab3e30796da3:0xbfbd3f3e12e4cf0' },
+        { id: 'p043', name: '白石畫廊 Whitestone Gallery', cuisine: '景點/其他', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%99%BD%E7%9F%B3%E7%95%AB%E5%BB%8A+Whitestone+Gallery/data=!4m2!3m1!1s0x3442ac6dd57b337b:0xc4fd1d00e1519fe7' },
+        { id: 'p044', name: '焰禾｜炒飯 雞湯麵', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%84%B0%E7%A6%BE%EF%BD%9C%E7%82%92%E9%A3%AF+%E9%9B%9E%E6%B9%AF%E9%BA%B5/data=!4m2!3m1!1s0x3442a9bceef39045:0x76a643c6fde3f982' },
+        { id: 'p045', name: '禾記茶餐廳大安店', cuisine: '港式', city: '台北', district: '大安區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%A6%BE%E8%A8%98%E8%8C%B6%E9%A4%90%E5%BB%B3%E5%A4%A7%E5%AE%89%E5%BA%97/data=!4m2!3m1!1s0x3442abb3211aad6f:0x66aa221ba3170822' },
+        { id: 'p046', name: '釜山湯飯 부산국밥', cuisine: '韓式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E9%87%9C%E5%B1%B1%E6%B9%AF%E9%A3%AF+%EB%B6%80%EC%82%B0%EA%B5%AD%EB%B0%A5/data=!4m2!3m1!1s0x3442ab8665545c3b:0x55c68f3ff275096' },
+        { id: 'p047', name: '田鄉池上飯包', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%94%B0%E9%84%89%E6%B1%A0%E4%B8%8A%E9%A3%AF%E5%8C%85/data=!4m2!3m1!1s0x3442ac65c6030f4b:0x5e4b809d0120bc5d' },
+        { id: 'p048', name: '傳說水煎包', cuisine: '小吃', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%82%B3%E8%AA%AA%E6%B0%B4%E7%85%8E%E5%8C%85/data=!4m2!3m1!1s0x3442ab58ff52ef9f:0x536a3d0763997b39' },
+        { id: 'p049', name: 'Greenriver Roastery．Archive', cuisine: '咖啡廳', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/Greenriver+Roastery%EF%BC%8EArchive/data=!4m2!3m1!1s0x3442abbb77331977:0xcbac23176bcaa48' },
+        { id: 'p050', name: '雞湯榮麵食館', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E9%9B%9E%E6%B9%AF%E6%A6%AE%E9%BA%B5%E9%A3%9F%E9%A4%A8/data=!4m2!3m1!1s0x3442a9df34a349cd:0xcd1a010f37ef13d1' },
+        { id: 'p051', name: '三姐妹水餃鍋貼', cuisine: '小吃', city: '基隆', district: '仁愛區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E4%B8%89%E5%A7%90%E5%A6%B9%E6%B0%B4%E9%A4%83%E9%8D%8B%E8%B2%BC/data=!4m2!3m1!1s0x345d4e3e40d6d033:0xf4f2d84fe6d6cb9b' },
+        { id: 'p052', name: '陳食滋味', cuisine: '台式', city: '基隆', district: '仁愛區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E9%99%B3%E9%A3%9F%E6%BB%8B%E5%91%B3/data=!4m2!3m1!1s0x345d4f1b7fa6dc39:0xd1e7845fbcfe2aa8' },
+        { id: 'p053', name: '渡邊珈琲製造所', cuisine: '咖啡廳', city: '基隆', district: '信義區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%B8%A1%E9%82%8A%E7%8F%88%E7%90%B2%E8%A3%BD%E9%80%A0%E6%89%80/data=!4m2!3m1!1s0x345d4f8186040601:0xdb107439261bd0e3' },
+        { id: 'p054', name: '三川海鮮粥＆麵店', cuisine: '海鮮', city: '基隆', district: '信義區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E4%B8%89%E5%B7%9D%E6%B5%B7%E9%AE%AE%E7%B2%A5%EF%BC%86%E9%BA%B5%E5%BA%97/data=!4m2!3m1!1s0x345d4f272158a797:0x1e4414eee0456234' },
+        { id: 'p055', name: '周家蔥油餅', cuisine: '小吃', city: '基隆', district: '中正區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%91%A8%E5%AE%B6%E8%94%A5%E6%B2%B9%E9%A4%85/data=!4m2!3m1!1s0x345d4e3f7a8c8555:0x8d130507b8e90cfc' },
+        { id: 'p056', name: '小隱茶庵 潮境', cuisine: '景點/其他', city: '基隆', district: '中正區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%B0%8F%E9%9A%B1%E8%8C%B6%E5%BA%B5+%E6%BD%AE%E5%A2%83/data=!4m2!3m1!1s0x345d4ffe1807d091:0x4b53704ec3ff9fb' },
+        { id: 'p057', name: 'SEN', cuisine: '日式', city: '基隆', district: '仁愛區', visited: false, note: '', url: 'https://www.google.com/maps/place/SEN/data=!4m2!3m1!1s0x345d4f0cae6b4c11:0x3ee8af0cedf12d84' },
+        { id: 'p058', name: '基隆廟口夜市', cuisine: '小吃', city: '基隆', district: '仁愛區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%9F%BA%E9%9A%86%E5%BB%9F%E5%8F%A3%E5%A4%9C%E5%B8%82/data=!4m2!3m1!1s0x345d4e3e159d9663:0x1d84dd13f992491e' },
+        { id: 'p059', name: '一號地鍋雞', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E4%B8%80%E8%99%9F%E5%9C%B0%E9%8D%8B%E9%9B%9E/data=!4m2!3m1!1s0x3442ab47e6b67f31:0xe3889b9f1336802d' },
+        { id: 'p060', name: '巢屋', cuisine: '咖啡廳', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%B7%A2%E5%B1%8B/data=!4m2!3m1!1s0x3442ab535ec80109:0x4406cf8f1adb3d01' },
+        { id: 'p061', name: '台中藏阿胖烘焙麵包坊（羅芙）', cuisine: '甜品/甜點', city: '台中', district: '南屯區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%8F%B0%E4%B8%AD%E8%97%8F%E9%98%BF%E8%83%96%E7%83%98%E7%84%99%E9%BA%B5%E5%8C%85%E5%9D%8A%EF%BC%88%E7%BE%85%E8%8A%99%EF%BC%89/data=!4m2!3m1!1s0x34693dbe707cf05d:0xbd9b83307c2cabfe' },
+        { id: 'p062', name: 'Kevin 舒食', cuisine: '素食', city: '台南', district: '東區', visited: false, note: '', url: 'https://www.google.com/maps/place/Kevin+%E8%88%92%E9%A3%9F/data=!4m2!3m1!1s0x346e779b68eaaa65:0x555d1401aae81d41' },
+        { id: 'p063', name: 'Fuk Coffee', cuisine: '咖啡廳', city: '日本', district: '', visited: false, note: '', url: 'https://www.google.com/maps/place/Fuk+Coffee/data=!4m2!3m1!1s0x3541919117455b79:0xdaf729fb2497074d' },
+        { id: 'p064', name: '小燉食室', cuisine: '台式', city: '高雄', district: '前鎮區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%B0%8F%E7%87%89%E9%A3%9F%E5%AE%A4/data=!4m2!3m1!1s0x346e05a0df45078d:0xf8d4daf76a82cf2e' },
+        { id: 'p065', name: '籌學費餐廳', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%B1%8C%E5%AD%B8%E8%B2%BB%E9%A4%90%E5%BB%B3/data=!4m2!3m1!1s0x3442abc843c61ad1:0xfd31d8c62d5d9de' },
+        { id: 'p066', name: '屏東双園火鍋', cuisine: '火鍋', city: '台北', district: '中山區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E5%B1%8F%E6%9D%B1%E5%8F%8C%E5%9C%92%E7%81%AB%E9%8D%8B/data=!4m2!3m1!1s0x3442a95a1efa10e7:0x49a5ce44a42a503d' },
+        { id: 'p067', name: '焼肉 アカタン', cuisine: '燒肉/燒烤', city: '日本', district: '', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%84%BC%E8%82%89+%E3%82%A2%E3%82%AB%E3%82%BF%E3%83%B3/data=!4m2!3m1!1s0x35419175a954f203:0xdf12485637f6430e' },
+        { id: 'p068', name: '樂野食', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%A8%82%E9%87%8E%E9%A3%9F/data=!4m2!3m1!1s0x3442abd763564773:0x919ebbd4097513f1' },
+        { id: 'p069', name: '炙り庵steak牛排-台北民權店', cuisine: '牛排/鐵板', city: '台北', district: '中山區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%82%99%E3%82%8A%E5%BA%B5steak%E7%89%9B%E6%8E%92-%E5%8F%B0%E5%8C%97%E6%B0%91%E6%AC%8A%E5%BA%97/data=!4m2!3m1!1s0x3442abceb4b18261:0x1c3d95f005ceeefa' },
+        { id: 'p070', name: '謙稻 sign in', cuisine: '台式', city: '高雄', district: '左營區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E8%AC%99%E7%A8%BB+sign+in/data=!4m2!3m1!1s0x346e053fc532813d:0x26f9314ba6336309' },
+        { id: 'p071', name: 'Brekkie', cuisine: '早午餐', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/Brekkie/data=!4m2!3m1!1s0x3442ab7a40643741:0xf1f577eab6d31814' },
+        { id: 'p072', name: '老潮派 台灣麵食館-文龍東店', cuisine: '台式', city: '高雄', district: '鳳山區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E8%80%81%E6%BD%AE%E6%B4%BE+%E5%8F%B0%E7%81%A3%E9%BA%B5%E9%A3%9F%E9%A4%A8-%E6%96%87%E9%BE%8D%E6%9D%B1%E5%BA%97%EF%BD%9C%E9%AB%98%E9%9B%84%E9%8D%8B%E7%87%92%EF%BD%9C%E9%B3%B3%E5%B1%B1%E4%BA%BA%E6%B0%A3%E9%BA%B5%E9%A3%9F/data=!4m2!3m1!1s0x346e1b446b1a8f83:0x9384e8e640dec35' },
+        { id: 'p073', name: 'La Botega Taipei', cuisine: '義式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/La+Botega+Taipei/data=!4m2!3m1!1s0x3442a90f78b05627:0x5f4092abdccac94f' },
+        { id: 'p074', name: '有有1969', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%9C%89%E6%9C%891969/data=!4m2!3m1!1s0x3442ab8e93d25751:0xc45b8a397504268d' },
+        { id: 'p075', name: '有有1969-二店', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E6%9C%89%E6%9C%891969-%E4%BA%8C%E5%BA%97/data=!4m2!3m1!1s0x3442ab8d487727bf:0xeaee932a8360dc1d' },
+        { id: 'p076', name: '盧記麻辣火鍋', cuisine: '火鍋', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%9B%A7%E8%A8%98%E9%BA%BB%E8%BE%A3%E7%81%AB%E9%8D%8B/data=!4m2!3m1!1s0x3442ab91ff9c9121:0xb4f13fc6024c56d2' },
+        { id: 'p077', name: '一蘭 天神西通店', cuisine: '日式', city: '日本', district: '', visited: false, note: '', url: 'https://www.google.com/maps/place/%E4%B8%80%E8%98%AD+%E5%A4%A9%E7%A5%9E%E8%A5%BF%E9%80%9A%E5%BA%97/data=!4m2!3m1!1s0x35419185fa948f31:0x5b30b2fbd510e493' },
+        { id: 'p078', name: '青沐（大安店）', cuisine: '台式', city: '台北', district: '大安區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E9%9D%92%E6%B2%90%EF%BC%88%E5%A4%A7%E5%AE%89%E5%BA%97%EF%BC%89/data=!4m2!3m1!1s0x3442ab44a8ebfbb5:0xde68d7443c346d4' },
+        { id: 'p079', name: '一樣 YEE YUNG', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E4%B8%80%E6%A8%A3+YEE+YUNG/data=!4m2!3m1!1s0x3442ab718a9bb037:0x4acd0d4ed9ed80c7' },
+        { id: 'p080', name: '丸麵舖', cuisine: '台式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E4%B8%B8%E9%BA%B5%E8%88%96/data=!4m2!3m1!1s0x3442ab0006de9037:0x6bd5fcf5dbcfff08' },
+        { id: 'p081', name: '筑梅鍋燒麵店', cuisine: '日式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%AD%91%E6%A2%85%E9%8D%8B%E7%87%92%E9%BA%B5%E5%BA%97/data=!4m2!3m1!1s0x3442ab5892c9c17f:0x85634abe282574e8' },
+        { id: 'p082', name: '燒石鼎石頭小火鍋-內湖店', cuisine: '火鍋', city: '台北', district: '內湖區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%87%92%E7%9F%B3%E9%BC%8E%E7%9F%B3%E9%A0%AD%E5%B0%8F%E7%81%AB%E9%8D%8B-%E5%85%A7%E6%B9%96%E5%BA%97/data=!4m2!3m1!1s0x3442ad002294d6b1:0xc62ddcb1bc26395a' },
+        { id: 'p083', name: '燒石鼎石頭小火鍋-信義店', cuisine: '火鍋', city: '台北', district: '信義區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%87%92%E7%9F%B3%E9%BC%8E%E7%9F%B3%E9%A0%AD%E5%B0%8F%E7%81%AB%E9%8D%8B-%E4%BF%A1%E7%BE%A9%E5%BA%97/data=!4m2!3m1!1s0x3442ab0003039fe1:0x3f8b62fc25d45c79' },
+        { id: 'p084', name: '紀々花 NONOKA CAFE BISTRO', cuisine: '咖啡廳', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E7%B4%80%E3%80%85%E8%8A%B1+NONOKA+CAFE+BISTRO+(%E7%B4%80%E7%B4%80%E8%8A%B1)/data=!4m2!3m1!1s0x3442ab3d398621cb:0x90d1f14bc6b39f34' },
+        { id: 'p085', name: '鍾記蒜香鹹酥雞（台北永春店）', cuisine: '小吃', city: '台北', district: '大安區', visited: false, note: '', url: 'https://www.google.com/maps/place/%E9%8D%BE%E8%A8%98%E8%92%9C%E9%A6%99%E9%B9%B9%E9%85%A5%E9%9B%9E%EF%BC%88%E5%8F%B0%E5%8C%97%E6%B0%B8%E6%98%A5%E5%BA%97%EF%BC%89/data=!4m2!3m1!1s0x3442aba4bf57538d:0xb08d712583e4eb6e' },
+        { id: 'p086', name: 'FUGU Japanese Gastropub', cuisine: '日式', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/FUGU+Japanese+Gastropub/data=!4m2!3m1!1s0x3442abaad6051537:0x34304264f6ca221' },
+        { id: 'p087', name: 'Some Some', cuisine: '咖啡廳', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/Some+Some/data=!4m2!3m1!1s0x3442ab9a033de819:0xe6779bc847051fb0' },
+        { id: 'p088', name: 'PLATBUM-ALBUM STORE KPOP專輯店', cuisine: '景點/其他', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/%E3%80%8APLATBUM-ALBUM+STORE%E3%80%8BKPOP%E5%B0%88%E8%BC%AF%E5%BA%97/data=!4m2!3m1!1s0x3442a901918e9129:0x7bf0185b6fc6f8a3' },
+        { id: 'p089', name: 'Herring Studio 鯡魚工作室', cuisine: '景點/其他', city: '台北', district: '其他', visited: false, note: '', url: 'https://www.google.com/maps/place/Herring+Studio+%E9%AF%A1%E9%AD%9A%E5%B7%A5%E4%BD%9C%E5%AE%A4/data=!4m2!3m1!1s0x3442ab917124af15:0x7e44d20b15fd2953' },
+        { id: 'p090', name: '路易威登 六本木新城店', cuisine: '景點/其他', city: '日本', district: '', visited: false, note: '', url: 'https://www.google.com/maps/place/%E8%B7%AF%E6%98%93%E5%A8%81%E7%99%BB+%E5%85%AD%E6%9C%AC%E6%9C%A8%E6%96%B0%E5%9F%8E%E5%BA%97/data=!4m2!3m1!1s0x60188b76f57ba36d:0x32f726d95321fecd' },
+        { id: 'p091', name: 'HUMAN MADE 原宿', cuisine: '景點/其他', city: '日本', district: '', visited: false, note: '', url: 'https://www.google.com/maps/place/HUMAN+MADE+%E5%8E%9F%E5%AE%BF/data=!4m2!3m1!1s0x60188ca48e679fb3:0x244e931c7a580d19' },
+        { id: 'p092', name: 'UGG', cuisine: '景點/其他', city: '日本', district: '', visited: false, note: '', url: 'https://www.google.com/maps/place/UGG/data=!4m2!3m1!1s0x60188cc54cf15723:0x25322ba3cfda7ca9' },
+        { id: 'p093', name: 'BEAMS JAPAN 太宰府', cuisine: '景點/其他', city: '日本', district: '', visited: false, note: '', url: 'https://www.google.com/maps/place/BEAMS+JAPAN+%E5%A4%AA%E5%AE%B0%E5%BA%9C/data=!4m2!3m1!1s0x35419bb0bacb2e49:0x27a89aca06a18095' }
       ];
       const defaultData = {
         gym: { total: 20, startDate: formatStr(new Date()), endDate: formatStr(today2m), records: [] },
@@ -642,6 +662,21 @@
           if (!Array.isArray(appData.customTypes))     appData.customTypes    = [];
           if (!Array.isArray(appData.dynamicEntries))  appData.dynamicEntries = [];
           if (!Array.isArray(appData.pocketList) || appData.pocketList.length === 0) appData.pocketList = defaultPocketList;
+          // 遷移：把 defaultPocketList 最新的 city/district/name/url 同步回雲端資料（保留使用者的 visited/note/type）
+          appData.pocketList.forEach(item => {
+            const def = defaultPocketList.find(d => d.id === item.id);
+            if (def) { item.city = def.city; item.district = def.district; item.name = def.name; item.url = def.url; }
+            else if (!item.city) {
+              // 舊資料遷移：從 district 拆出 city
+              const d = item.district || '';
+              let matched = false;
+              for (const c of Object.keys(cityDistrictMap)) {
+                if (d === c) { item.city = c; item.district = ''; matched = true; break; }
+                if (d.startsWith(c) && d.length > c.length) { item.city = c; item.district = d.slice(c.length); matched = true; break; }
+              }
+              if (!matched) { item.city = d || '其他'; item.district = ''; }
+            }
+          });
           showToast('已從雲端載入', 'success');
         } else {
           await fetch(JSONBIN_URL, {
@@ -1682,33 +1717,68 @@
       // ════════════════════════════════════════════════
       // 口袋名單
       // ════════════════════════════════════════════════
+      let pocketActiveTab = 'food'; // 'food' | 'sight'
+      const cityDistrictMap = {
+        '台北': ['信義區','南港區','內湖區','松山區','大安區','中山區','萬華區','其他'],
+        '基隆': ['仁愛區','信義區','中正區'],
+        '新北': ['貢寮區'],
+        '高雄': ['左營區','三民區','前金區','前鎮區','鳳山區','鼓山區'],
+        '台中': ['北區','南屯區'],
+        '台南': ['東區'],
+        '南投': ['埔里鎮'],
+        '屏東': ['滿州鄉'],
+        '日本': [],
+        '其他': [],
+      };
       let pocketFilterCuisine = '';
+      let pocketFilterCity = '';
       let pocketFilterDistrict = '';
       let pocketFilterVisited = 'all'; // 'all' | 'visited' | 'unvisited'
       let editingPocketId = null;
 
+      const isSight = item => item.type === 'sight' || (item.type === undefined && item.cuisine === '景點/其他');
+
       // populate filter dropdowns
-      const populatePocketFilters = () => {
-        const cuisines = [...new Set(appData.pocketList.map(p => p.cuisine))].sort();
-        const districts = [...new Set(appData.pocketList.map(p => p.district))].sort();
-        const cs = document.getElementById('filter-cuisine');
+      const updateFilterDistrictSelect = () => {
+        const tabList = appData.pocketList.filter(p => pocketActiveTab === 'food' ? !isSight(p) : isSight(p));
         const ds = document.getElementById('filter-district');
+        if (!pocketFilterCity) { ds.style.display = 'none'; return; }
+        const dists = [...new Set(tabList.filter(p => (p.city||'其他') === pocketFilterCity).map(p => p.district).filter(Boolean))].sort();
+        if (dists.length === 0) { ds.style.display = 'none'; return; }
+        ds.style.display = '';
+        ds.innerHTML = '<option value="">所有地區</option>' + dists.map(d => `<option value="${d}"${d === pocketFilterDistrict ? ' selected' : ''}>${d}</option>`).join('');
+      };
+      const populatePocketFilters = () => {
+        const tabList = appData.pocketList.filter(p => pocketActiveTab === 'food' ? !isSight(p) : isSight(p));
+        const cuisines = [...new Set(tabList.map(p => p.cuisine))].sort();
+        const cities = [...new Set(tabList.map(p => p.city||'其他'))].sort();
+        const cs = document.getElementById('filter-cuisine');
+        const cityS = document.getElementById('filter-city');
+        // 景點 tab 不顯示口味篩選
+        cs.style.display = pocketActiveTab === 'sight' ? 'none' : '';
         cs.innerHTML = '<option value="">所有口味</option>' + cuisines.map(c => `<option value="${c}"${c === pocketFilterCuisine ? ' selected' : ''}>${c}</option>`).join('');
-        ds.innerHTML = '<option value="">所有地區</option>' + districts.map(d => `<option value="${d}"${d === pocketFilterDistrict ? ' selected' : ''}>${d}</option>`).join('');
+        cityS.innerHTML = '<option value="">所有城市</option>' + cities.map(c => `<option value="${c}"${c === pocketFilterCity ? ' selected' : ''}>${c}</option>`).join('');
+        updateFilterDistrictSelect();
+        // 更新狀態按鈕文字
+        const isSightTab = pocketActiveTab === 'sight';
+        document.getElementById('filter-unvisited').textContent = isSightTab ? '還沒去' : '沒吃過';
+        document.getElementById('filter-visited').textContent = isSightTab ? '去過了' : '吃過了';
       };
 
       const renderPocketGrid = () => {
         const grid = document.getElementById('pocket-grid');
         if (!grid) return;
-        let list = appData.pocketList;
+        let list = appData.pocketList.filter(p => pocketActiveTab === 'food' ? !isSight(p) : isSight(p));
         if (pocketFilterCuisine) list = list.filter(p => p.cuisine === pocketFilterCuisine);
+        if (pocketFilterCity) list = list.filter(p => (p.city||'其他') === pocketFilterCity);
         if (pocketFilterDistrict) list = list.filter(p => p.district === pocketFilterDistrict);
         if (pocketFilterVisited === 'visited') list = list.filter(p => p.visited);
         if (pocketFilterVisited === 'unvisited') list = list.filter(p => !p.visited);
 
-        const total = appData.pocketList.length;
-        const visited = appData.pocketList.filter(p => p.visited).length;
-        document.getElementById('pocket-count').textContent = `${visited}/${total} 吃過`;
+        const tabList = appData.pocketList.filter(p => pocketActiveTab === 'food' ? !isSight(p) : isSight(p));
+        const visitedCount = tabList.filter(p => p.visited).length;
+        const isSightTab = pocketActiveTab === 'sight';
+        document.getElementById('pocket-count').textContent = `${visitedCount}/${tabList.length} ${isSightTab ? '去過' : '吃過'}`;
 
         grid.innerHTML = '';
         list.forEach(item => {
@@ -1716,15 +1786,32 @@
           card.className = `pocket-card${item.visited ? ' is-visited' : ''}`;
           card.innerHTML = `
             <div class="pocket-card-top">
-              <span class="pocket-tag pocket-tag-cuisine">${item.cuisine}</span>
-              <span class="pocket-tag pocket-tag-district">${item.district}</span>
+              ${!isSightTab ? `<span class="pocket-tag pocket-tag-cuisine">${item.cuisine}</span>` : ''}
+              <span class="pocket-tag pocket-tag-district">${(item.city||'')+(item.district||'')}</span>
             </div>
             <h3 class="pocket-name">${item.name}</h3>
             ${item.note ? `<p class="pocket-note">${item.note}</p>` : ''}
             <div class="pocket-card-footer">
-              <span class="pocket-visited-label">${item.visited ? '✓ 吃過了' : '還沒吃'}</span>
-              <button class="btn-icon pocket-edit-btn" data-id="${item.id}" style="width:32px;height:32px;"><i data-lucide="pencil" size="14"></i></button>
+              <span class="pocket-visited-label">${item.visited ? (isSightTab ? '✓ 去過了' : '✓ 吃過了') : (isSightTab ? '還沒去' : '還沒吃')}</span>
+              <div style="display:flex;gap:0.25rem;align-items:center;">
+                ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener" class="btn-icon" style="width:32px;height:32px;color:#22c55e;" onclick="event.stopPropagation()"><i data-lucide="map-pin" size="14"></i></a>` : ''}
+                <button class="btn-icon pocket-delete-btn" data-id="${item.id}" style="width:32px;height:32px;color:var(--danger,#ff4466);"><i data-lucide="trash-2" size="14"></i></button>
+                <button class="btn-icon pocket-edit-btn" data-id="${item.id}" style="width:32px;height:32px;"><i data-lucide="pencil" size="14"></i></button>
+              </div>
             </div>`;
+          card.querySelector('.pocket-delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openConfirmModal(
+              '確認刪除？',
+              `確定要刪除「<strong>${item.name}</strong>」嗎？<br><strong>此操作無法復原。</strong>`,
+              '確定刪除',
+              async () => {
+                appData.pocketList = appData.pocketList.filter(p => p.id !== item.id);
+                renderPocketGrid();
+                await saveState();
+              }
+            );
+          });
           card.querySelector('.pocket-edit-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             openPocketModal(item.id);
@@ -1742,23 +1829,77 @@
         document.getElementById('pocket-modal-title').textContent = item.name;
 
         // 填入口味下拉選單
-        const cuisineOptions = [...new Set(appData.pocketList.map(p => p.cuisine))].sort();
+        const cuisineOptions = [...new Set(appData.pocketList.map(p => p.cuisine).filter(c => c && c !== '__new__'))].sort();
         const cSelect = document.getElementById('pocket-cuisine-input');
         cSelect.innerHTML = cuisineOptions.map(c =>
           `<option value="${c}"${c === item.cuisine ? ' selected' : ''}>${c}</option>`
-        ).join('');
+        ).join('') + '<option value="__new__">＋ 新增分類…</option>';
+        const cNewInput = document.getElementById('pocket-cuisine-new');
+        cNewInput.value = '';
+        cNewInput.style.display = 'none';
+        cSelect.onchange = () => {
+          cNewInput.style.display = cSelect.value === '__new__' ? 'block' : 'none';
+          if (cSelect.value === '__new__') cNewInput.focus();
+        };
 
-        // 填入地區下拉選單
-        const districtOptions = [...new Set(appData.pocketList.map(p => p.district))].sort();
-        const dSelect = document.getElementById('pocket-district-input');
-        dSelect.innerHTML = districtOptions.map(d =>
-          `<option value="${d}"${d === item.district ? ' selected' : ''}>${d}</option>`
+        // 填入城市 / 地區下拉選單
+        const allCities = Object.keys(cityDistrictMap);
+        const citySelect = document.getElementById('pocket-city-input');
+        citySelect.innerHTML = allCities.map(c =>
+          `<option value="${c}"${c === (item.city||'其他') ? ' selected' : ''}>${c}</option>`
         ).join('');
+        const dNewInput = document.getElementById('pocket-district-new');
+        dNewInput.value = '';
+        dNewInput.style.display = 'none';
+        const updateModalDistrictSelect = (selectedCity, currentDistrict) => {
+          const dSelect = document.getElementById('pocket-district-input');
+          const knownDists = cityDistrictMap[selectedCity] || [];
+          const extraDists = [...new Set(appData.pocketList.filter(p => (p.city||'其他') === selectedCity).map(p => p.district).filter(Boolean))];
+          const allDists = [...new Set([...knownDists, ...extraDists])].sort();
+          if (allDists.length === 0) { dSelect.style.display = 'none'; return; }
+          dSelect.style.display = '';
+          dSelect.innerHTML = allDists.map(d => `<option value="${d}"${d === currentDistrict ? ' selected' : ''}>${d}</option>`).join('')
+            + '<option value="__new_d__">＋ 新增地區…</option>';
+          dNewInput.value = '';
+          dNewInput.style.display = 'none';
+          dSelect.onchange = () => {
+            dNewInput.style.display = dSelect.value === '__new_d__' ? 'block' : 'none';
+            if (dSelect.value === '__new_d__') dNewInput.focus();
+          };
+        };
+        updateModalDistrictSelect(item.city||'其他', item.district||'');
+        citySelect.onchange = () => { updateModalDistrictSelect(citySelect.value, ''); };
+        // 類別 toggle
+        const isSightItem = isSight(item);
+        document.querySelectorAll('.pocket-type-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.type === (isSightItem ? 'sight' : 'food'));
+        });
+        const updateCuisineVisibility = () => {
+          const sightActive = document.querySelector('.pocket-type-btn.active')?.dataset.type === 'sight';
+          document.getElementById('pocket-cuisine-label').style.display = sightActive ? 'none' : '';
+          document.getElementById('pocket-cuisine-new').style.display = 'none';
+          // 更新 toggle 按鈕文字
+          const vBtn = document.getElementById('pocket-toggle-visited');
+          const isV = vBtn.dataset.visited === '1';
+          vBtn.textContent = isV ? (sightActive ? '✓ 去過了' : '✓ 吃過了') : (sightActive ? '還沒去' : '還沒吃');
+          vBtn.dataset.sight = sightActive ? '1' : '0';
+        };
+        document.querySelectorAll('.pocket-type-btn').forEach(b => {
+          b.onclick = () => {
+            document.querySelectorAll('.pocket-type-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            updateCuisineVisibility();
+          };
+        });
+        document.getElementById('pocket-cuisine-label').style.display = isSightItem ? 'none' : '';
+        document.getElementById('pocket-cuisine-new').style.display = 'none';
         document.getElementById('pocket-note-input').value = item.note || '';
+        const visitedLabel = isSightItem ? ['✓ 去過了', '還沒去'] : ['✓ 吃過了', '還沒吃'];
         const toggleBtn = document.getElementById('pocket-toggle-visited');
-        toggleBtn.textContent = item.visited ? '✓ 吃過了' : '還沒吃';
+        toggleBtn.textContent = item.visited ? visitedLabel[0] : visitedLabel[1];
         toggleBtn.className = `pocket-toggle-btn${item.visited ? ' is-visited' : ''}`;
         toggleBtn.dataset.visited = item.visited ? '1' : '0';
+        toggleBtn.dataset.sight = isSightItem ? '1' : '0';
         const mapLink = document.getElementById('pocket-map-link');
         if (item.url) { mapLink.href = item.url; mapLink.style.display = 'inline-flex'; }
         else { mapLink.style.display = 'none'; }
@@ -1769,8 +1910,9 @@
       document.getElementById('pocket-toggle-visited').addEventListener('click', () => {
         const btn = document.getElementById('pocket-toggle-visited');
         const isNowVisited = btn.dataset.visited !== '1';
+        const sight = btn.dataset.sight === '1';
         btn.dataset.visited = isNowVisited ? '1' : '0';
-        btn.textContent = isNowVisited ? '✓ 吃過了' : '還沒吃';
+        btn.textContent = isNowVisited ? (sight ? '✓ 去過了' : '✓ 吃過了') : (sight ? '還沒去' : '還沒吃');
         btn.className = `pocket-toggle-btn${isNowVisited ? ' is-visited' : ''}`;
       });
 
@@ -1789,16 +1931,51 @@
         if (idx === -1) return;
         const isVisited = document.getElementById('pocket-toggle-visited').dataset.visited === '1';
         appData.pocketList[idx].visited = isVisited;
-        appData.pocketList[idx].cuisine = document.getElementById('pocket-cuisine-input').value;
-        appData.pocketList[idx].district = document.getElementById('pocket-district-input').value;
+        const selectedType = document.querySelector('.pocket-type-btn.active')?.dataset.type || 'food';
+        appData.pocketList[idx].type = selectedType;
+        const cVal = document.getElementById('pocket-cuisine-input').value;
+        const cNew = document.getElementById('pocket-cuisine-new').value.trim();
+        if (cVal !== '__new__') appData.pocketList[idx].cuisine = cVal;
+        else if (cNew) appData.pocketList[idx].cuisine = cNew;
+        // cVal === '__new__' && !cNew → 保留原本值，不更新
+        const cityVal = document.getElementById('pocket-city-input').value;
+        appData.pocketList[idx].city = cityVal;
+        const dVal = document.getElementById('pocket-district-input').value;
+        const dNew = document.getElementById('pocket-district-new').value.trim();
+        if (dVal !== '__new_d__') appData.pocketList[idx].district = dVal;
+        else if (dNew) appData.pocketList[idx].district = dNew;
+        else appData.pocketList[idx].district = '';
         appData.pocketList[idx].note = document.getElementById('pocket-note-input').value.trim();
         closePocketModal();
         renderPocketGrid();
         await saveState();
       });
 
+      // tabs
+      ['food', 'sight'].forEach(tab => {
+        document.getElementById(`tab-${tab}`).addEventListener('click', () => {
+          pocketActiveTab = tab;
+          pocketFilterCuisine = '';
+          pocketFilterCity = '';
+          pocketFilterDistrict = '';
+          pocketFilterVisited = 'all';
+          document.querySelectorAll('.pocket-tab').forEach(b => b.classList.remove('active'));
+          document.getElementById(`tab-${tab}`).classList.add('active');
+          document.querySelectorAll('.pocket-filter-btn').forEach(b => b.classList.remove('active'));
+          document.getElementById('filter-all').classList.add('active');
+          populatePocketFilters();
+          renderPocketGrid();
+        });
+      });
+
       // filters
       document.getElementById('filter-cuisine').addEventListener('change', e => { pocketFilterCuisine = e.target.value; renderPocketGrid(); });
+      document.getElementById('filter-city').addEventListener('change', e => {
+        pocketFilterCity = e.target.value;
+        pocketFilterDistrict = '';
+        updateFilterDistrictSelect();
+        renderPocketGrid();
+      });
       document.getElementById('filter-district').addEventListener('change', e => { pocketFilterDistrict = e.target.value; renderPocketGrid(); });
       ['all', 'unvisited', 'visited'].forEach(type => {
         document.getElementById(`filter-${type}`).addEventListener('click', () => {
