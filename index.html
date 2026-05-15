@@ -163,7 +163,10 @@
           <i data-lucide="arrow-left" size="18"></i>
         </button>
         <h2 class="category-title">口袋名單</h2>
-        <span class="pocket-count" id="pocket-count"></span>
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-left:auto;">
+          <span class="pocket-count" id="pocket-count"></span>
+          <button class="btn-save" id="btn-pocket-add" style="padding:0.45rem 1rem;font-size:0.875rem;white-space:nowrap;">＋ 新增</button>
+        </div>
       </div>
 
       <!-- Tab bar -->
@@ -476,6 +479,14 @@
         <button class="btn-icon" id="btn-pocket-close"><i data-lucide="x" size="18"></i></button>
       </div>
       <div class="modal-body" style="gap:1rem;">
+        <!-- 名稱（新增必填，編輯可改） -->
+        <label class="form-label">名稱 <span class="required" id="pocket-name-required">*</span>
+          <input class="form-input" id="pocket-name-input" placeholder="餐廳或地點名稱" autocomplete="off">
+        </label>
+        <label class="form-label" id="pocket-url-field" style="display:none;">Google Maps 連結 <span class="required">*</span>
+          <input class="form-input" id="pocket-url-input" placeholder="https://maps.google.com/..." autocomplete="off" type="url">
+        </label>
+        <!-- 編輯模式的 Maps 連結按鈕 -->
         <a id="pocket-map-link" href="#" target="_blank" rel="noopener" class="btn-cancel" style="display:none;align-items:center;gap:0.4rem;justify-content:center;">
           <i data-lucide="map-pin" size="14"></i> Google Maps
         </a>
@@ -496,11 +507,13 @@
           </div>
           <input class="form-input" id="pocket-district-new" placeholder="輸入新地區名稱…" autocomplete="off" style="display:none;margin-top:0.5rem;">
         </label>
-        <label class="form-label">吃過了？
-          <div class="pocket-visited-toggle">
-            <button class="pocket-toggle-btn" id="pocket-toggle-visited"></button>
-          </div>
-        </label>
+        <div class="form-label pocket-visited-row">
+          <span>到訪用餐</span>
+          <label class="switch-toggle">
+            <input type="checkbox" id="pocket-toggle-visited">
+            <span class="switch-track"></span>
+          </label>
+        </div>
         <label class="form-label">美食筆記
           <textarea class="form-input form-textarea" id="pocket-note-input" placeholder="記下口感、推薦菜色、注意事項…"></textarea>
         </label>
@@ -1792,10 +1805,13 @@
             <h3 class="pocket-name">${item.name}</h3>
             ${item.note ? `<p class="pocket-note">${item.note}</p>` : ''}
             <div class="pocket-card-footer">
-              <span class="pocket-visited-label">${item.visited ? (isSightTab ? '✓ 去過了' : '✓ 吃過了') : (isSightTab ? '還沒去' : '還沒吃')}</span>
+              <label class="switch-toggle switch-sm" onclick="event.stopPropagation()">
+                <input type="checkbox" class="pocket-card-visited" data-id="${item.id}" ${item.visited ? 'checked' : ''}>
+                <span class="switch-track"></span>
+              </label>
               <div style="display:flex;gap:0.25rem;align-items:center;">
                 ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener" class="btn-icon" style="width:32px;height:32px;color:#22c55e;" onclick="event.stopPropagation()"><i data-lucide="map-pin" size="14"></i></a>` : ''}
-                <button class="btn-icon pocket-delete-btn" data-id="${item.id}" style="width:32px;height:32px;color:var(--danger,#ff4466);"><i data-lucide="trash-2" size="14"></i></button>
+                <button class="btn-icon pocket-delete-btn" data-id="${item.id}" style="width:32px;height:32px;"><i data-lucide="trash-2" size="14"></i></button>
                 <button class="btn-icon pocket-edit-btn" data-id="${item.id}" style="width:32px;height:32px;"><i data-lucide="pencil" size="14"></i></button>
               </div>
             </div>`;
@@ -1817,16 +1833,33 @@
             openPocketModal(item.id);
           });
           card.addEventListener('click', () => openPocketModal(item.id));
+          card.querySelector('.pocket-card-visited').addEventListener('change', async (e) => {
+            const target = appData.pocketList.find(p => p.id === e.target.dataset.id);
+            if (target) { target.visited = e.target.checked; renderPocketGrid(); await saveState(); }
+          });
           grid.appendChild(card);
         });
         lucide.createIcons();
       };
 
       const openPocketModal = (id) => {
-        const item = appData.pocketList.find(p => p.id === id);
+        const isAdding = !id;
+        const item = isAdding ? {
+          id: null, name: '', cuisine: '', city: '台北', district: '其他',
+          visited: false, note: '', url: '',
+          type: pocketActiveTab === 'sight' ? 'sight' : 'food'
+        } : appData.pocketList.find(p => p.id === id);
         if (!item) return;
-        editingPocketId = id;
-        document.getElementById('pocket-modal-title').textContent = item.name;
+        editingPocketId = id || null;
+
+        // 切換新增 / 編輯模式 UI
+        document.getElementById('pocket-modal-title').textContent = isAdding ? '新增地點' : '編輯地點';
+        document.getElementById('pocket-name-required').style.display = isAdding ? '' : 'none';
+        document.getElementById('pocket-url-field').style.display = isAdding ? '' : 'none';
+        document.getElementById('pocket-map-link').style.display = isAdding ? 'none' : (item.url ? 'inline-flex' : 'none');
+        document.getElementById('pocket-name-input').value = isAdding ? '' : item.name;
+        document.getElementById('pocket-url-input').value = '';
+        document.querySelector('.pocket-visited-row').style.display = isAdding ? 'none' : '';
 
         // 填入口味下拉選單
         const cuisineOptions = [...new Set(appData.pocketList.map(p => p.cuisine).filter(c => c && c !== '__new__'))].sort();
@@ -1878,11 +1911,6 @@
           const sightActive = document.querySelector('.pocket-type-btn.active')?.dataset.type === 'sight';
           document.getElementById('pocket-cuisine-label').style.display = sightActive ? 'none' : '';
           document.getElementById('pocket-cuisine-new').style.display = 'none';
-          // 更新 toggle 按鈕文字
-          const vBtn = document.getElementById('pocket-toggle-visited');
-          const isV = vBtn.dataset.visited === '1';
-          vBtn.textContent = isV ? (sightActive ? '✓ 去過了' : '✓ 吃過了') : (sightActive ? '還沒去' : '還沒吃');
-          vBtn.dataset.sight = sightActive ? '1' : '0';
         };
         document.querySelectorAll('.pocket-type-btn').forEach(b => {
           b.onclick = () => {
@@ -1894,62 +1922,83 @@
         document.getElementById('pocket-cuisine-label').style.display = isSightItem ? 'none' : '';
         document.getElementById('pocket-cuisine-new').style.display = 'none';
         document.getElementById('pocket-note-input').value = item.note || '';
-        const visitedLabel = isSightItem ? ['✓ 去過了', '還沒去'] : ['✓ 吃過了', '還沒吃'];
-        const toggleBtn = document.getElementById('pocket-toggle-visited');
-        toggleBtn.textContent = item.visited ? visitedLabel[0] : visitedLabel[1];
-        toggleBtn.className = `pocket-toggle-btn${item.visited ? ' is-visited' : ''}`;
-        toggleBtn.dataset.visited = item.visited ? '1' : '0';
-        toggleBtn.dataset.sight = isSightItem ? '1' : '0';
-        const mapLink = document.getElementById('pocket-map-link');
-        if (item.url) { mapLink.href = item.url; mapLink.style.display = 'inline-flex'; }
-        else { mapLink.style.display = 'none'; }
+        document.getElementById('pocket-toggle-visited').checked = !!item.visited;
+        if (!isAdding) {
+          const mapLink = document.getElementById('pocket-map-link');
+          if (item.url) { mapLink.href = item.url; mapLink.style.display = 'inline-flex'; }
+          else { mapLink.style.display = 'none'; }
+        }
         lucide.createIcons();
         document.getElementById('modal-pocket').classList.add('active');
       };
 
-      document.getElementById('pocket-toggle-visited').addEventListener('click', () => {
-        const btn = document.getElementById('pocket-toggle-visited');
-        const isNowVisited = btn.dataset.visited !== '1';
-        const sight = btn.dataset.sight === '1';
-        btn.dataset.visited = isNowVisited ? '1' : '0';
-        btn.textContent = isNowVisited ? (sight ? '✓ 去過了' : '✓ 吃過了') : (sight ? '還沒去' : '還沒吃');
-        btn.className = `pocket-toggle-btn${isNowVisited ? ' is-visited' : ''}`;
-      });
 
       const closePocketModal = () => {
         document.getElementById('modal-pocket').classList.remove('active');
         editingPocketId = null;
       };
+      // 貼 Google Maps URL → 自動帶出名稱
+      document.getElementById('pocket-url-input').addEventListener('input', () => {
+        const url = document.getElementById('pocket-url-input').value.trim();
+        const nameInput = document.getElementById('pocket-name-input');
+        if (nameInput.value) return; // 已有名稱就不覆蓋
+        const match = url.match(/maps\/place\/([^/]+)/);
+        if (match) {
+          try {
+            const decoded = decodeURIComponent(match[1]);
+            if (decoded && !decoded.startsWith('data=')) nameInput.value = decoded;
+          } catch (e) {}
+        }
+      });
+
       document.getElementById('btn-pocket-close').addEventListener('click', closePocketModal);
       document.getElementById('modal-pocket').addEventListener('click', e => {
         if (e.target === document.getElementById('modal-pocket')) closePocketModal();
       });
 
       document.getElementById('btn-pocket-save').addEventListener('click', async () => {
-        if (!editingPocketId) return;
-        const idx = appData.pocketList.findIndex(p => p.id === editingPocketId);
-        if (idx === -1) return;
-        const isVisited = document.getElementById('pocket-toggle-visited').dataset.visited === '1';
-        appData.pocketList[idx].visited = isVisited;
+        const isAdding = !editingPocketId;
         const selectedType = document.querySelector('.pocket-type-btn.active')?.dataset.type || 'food';
-        appData.pocketList[idx].type = selectedType;
         const cVal = document.getElementById('pocket-cuisine-input').value;
         const cNew = document.getElementById('pocket-cuisine-new').value.trim();
-        if (cVal !== '__new__') appData.pocketList[idx].cuisine = cVal;
-        else if (cNew) appData.pocketList[idx].cuisine = cNew;
-        // cVal === '__new__' && !cNew → 保留原本值，不更新
+        const cuisine = cVal !== '__new__' ? cVal : (cNew || '');
         const cityVal = document.getElementById('pocket-city-input').value;
-        appData.pocketList[idx].city = cityVal;
         const dVal = document.getElementById('pocket-district-input').value;
         const dNew = document.getElementById('pocket-district-new').value.trim();
-        if (dVal !== '__new_d__') appData.pocketList[idx].district = dVal;
-        else if (dNew) appData.pocketList[idx].district = dNew;
-        else appData.pocketList[idx].district = '';
-        appData.pocketList[idx].note = document.getElementById('pocket-note-input').value.trim();
+        const district = dVal !== '__new_d__' ? dVal : (dNew || '');
+
+        if (isAdding) {
+          // 新增模式：必填驗證
+          const name = document.getElementById('pocket-name-input').value.trim();
+          const url = document.getElementById('pocket-url-input').value.trim();
+          if (!name) { document.getElementById('pocket-name-input').focus(); return; }
+          if (!url) { document.getElementById('pocket-url-input').focus(); return; }
+          const newItem = {
+            id: `p-${Date.now()}`,
+            name, url, cuisine, city: cityVal, district,
+            type: selectedType, visited: false, note: document.getElementById('pocket-note-input').value.trim()
+          };
+          appData.pocketList.unshift(newItem);
+        } else {
+          // 編輯模式
+          const idx = appData.pocketList.findIndex(p => p.id === editingPocketId);
+          if (idx === -1) return;
+          const editName = document.getElementById('pocket-name-input').value.trim();
+          if (editName) appData.pocketList[idx].name = editName;
+          appData.pocketList[idx].visited = document.getElementById('pocket-toggle-visited').checked;
+          appData.pocketList[idx].type = selectedType;
+          if (cVal !== '__new__') appData.pocketList[idx].cuisine = cVal;
+          else if (cNew) appData.pocketList[idx].cuisine = cNew;
+          appData.pocketList[idx].city = cityVal;
+          appData.pocketList[idx].district = district;
+          appData.pocketList[idx].note = document.getElementById('pocket-note-input').value.trim();
+        }
         closePocketModal();
         renderPocketGrid();
         await saveState();
       });
+
+      document.getElementById('btn-pocket-add').addEventListener('click', () => openPocketModal(null));
 
       // tabs
       ['food', 'sight'].forEach(tab => {
