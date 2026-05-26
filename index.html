@@ -16,7 +16,6 @@
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Poppins:wght@700&display=swap"
     rel="stylesheet">
   <script src="js/lucide.min.js"></script>
-  <script src="config.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -534,12 +533,10 @@
     document.addEventListener('DOMContentLoaded', async () => {
       lucide.createIcons();
 
-      // ── GitHub Gist 儲存 ──────────────────────────────
-      const GIST_TOKEN = window.DASHBOARD_CONFIG?.gistToken || '';
-      const GIST_ID    = window.DASHBOARD_CONFIG?.gistId || '';
-      const GIST_FILE  = 'dashboard.json';
-      const GIST_URL   = `https://api.github.com/gists/${GIST_ID}`;
-      const GIST_HEADERS = { 'Authorization': `token ${GIST_TOKEN}`, 'Content-Type': 'application/json' };
+      // ── JSONBin.io ────────────────────────────────────
+      const JSONBIN_KEY = '$2a$10$TxsupRh7kHjCZb3VceR.xehsu2Ff0jG3.nz.c5mi4F67I9Z5qacmy';
+      const JSONBIN_BIN = '69eedda0856a68218977c12e';
+      const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN}`;
 
       // ── Toast 通知 ────────────────────────────────
       let _toastTimer = null;
@@ -663,14 +660,13 @@
 
       let appData = JSON.parse(JSON.stringify(defaultData));
 
-      // ── 從 GitHub Gist 載入 ──────────────────────────
+      // ── 資料遷移 helper ───────────────────────────────
       const migrateAppData = (record) => {
         appData = { ...defaultData, ...record };
         if (!Array.isArray(appData.customModules))  appData.customModules  = [];
         if (!Array.isArray(appData.customTypes))     appData.customTypes    = [];
         if (!Array.isArray(appData.dynamicEntries))  appData.dynamicEntries = [];
         if (!Array.isArray(appData.pocketList) || appData.pocketList.length === 0) appData.pocketList = defaultPocketList;
-        // 遷移：把 defaultPocketList 最新的 city/district/name/url 同步回雲端資料
         appData.pocketList.forEach(item => {
           const def = defaultPocketList.find(d => d.id === item.id);
           if (def) { item.city = def.city; item.district = def.district; item.name = def.name; item.url = def.url; }
@@ -686,48 +682,47 @@
         });
       };
 
+      // ── 從 JSONBin 載入 ───────────────────────────────
       showToast('雲端資料載入中…', 'basic', 0);
       try {
-        const res = await fetch(GIST_URL, { headers: GIST_HEADERS });
+        const res = await fetch(`${JSONBIN_URL}/latest`, {
+          headers: { 'X-Master-Key': JSONBIN_KEY }
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
-        const content = json.files?.[GIST_FILE]?.content;
-        if (content) {
-          const record = JSON.parse(content);
-          if (record && Object.keys(record).some(k => k !== 'initialized')) {
-            migrateAppData(record);
-            showToast('已從雲端載入', 'success');
-          } else {
-            // Gist 只有初始化標記，寫入預設資料
-            migrateAppData({});
-            await fetch(GIST_URL, {
-              method: 'PATCH', headers: GIST_HEADERS,
-              body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(appData) } } })
-            });
-            showToast('已初始化雲端資料', 'success');
-          }
+        const record = json.record;
+        if (record && Object.keys(record).some(k => k !== 'initialized')) {
+          migrateAppData(record);
+          showToast('已從雲端載入', 'success');
+        } else {
+          migrateAppData({});
+          await fetch(JSONBIN_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+            body: JSON.stringify(appData)
+          });
+          showToast('已初始化雲端資料', 'success');
         }
       } catch (err) {
-        console.error('Gist 讀取失敗：', err);
+        console.error('JSONBin 讀取失敗：', err);
         showToast('雲端連線失敗，使用本機暫存', 'warning');
         const local = localStorage.getItem('nexus_dashboard_v1');
-        if (local) {
-          migrateAppData(JSON.parse(local));
-        }
+        migrateAppData(local ? JSON.parse(local) : {});
       }
 
       // ── 儲存 ─────────────────────────────────────────
       const saveState = async () => {
         localStorage.setItem('nexus_dashboard_v1', JSON.stringify(appData));
         try {
-          const res = await fetch(GIST_URL, {
-            method: 'PATCH', headers: GIST_HEADERS,
-            body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(appData) } } })
+          const res = await fetch(JSONBIN_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+            body: JSON.stringify(appData)
           });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           showToast('已同步至雲端', 'success');
         } catch (err) {
-          console.error('Gist 儲存失敗：', err);
+          console.error('JSONBin 儲存失敗：', err);
           showToast('雲端儲存失敗，已存本機', 'warning');
         }
       };
