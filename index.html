@@ -490,6 +490,10 @@
         <a id="pocket-map-link" href="#" target="_blank" rel="noopener" class="btn-cancel" style="display:none;align-items:center;gap:0.4rem;justify-content:center;">
           <i data-lucide="map-pin" size="14"></i> Google Maps
         </a>
+        <!-- 地圖預覽 -->
+        <div id="pocket-map-preview" style="display:none;border-radius:10px;overflow:hidden;height:150px;border:1px solid var(--border-color);">
+          <iframe id="pocket-map-iframe" src="" width="100%" height="100%" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
         <label class="form-label">類別
           <div class="pocket-type-toggle">
             <button class="pocket-type-btn active" data-type="food">美食</button>
@@ -1926,6 +1930,23 @@
           if (item.url) { mapLink.href = item.url; mapLink.style.display = 'inline-flex'; }
           else { mapLink.style.display = 'none'; }
         }
+        // 地圖預覽
+        const mapPreview = document.getElementById('pocket-map-preview');
+        const mapIframe = document.getElementById('pocket-map-iframe');
+        if (!isAdding && item.url) {
+          const match = item.url.match(/maps\/place\/([^/]+)/);
+          if (match) {
+            const q = decodeURIComponent(match[1]).replace(/\+/g, ' ');
+            mapIframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed`;
+            mapPreview.style.display = '';
+          } else {
+            mapIframe.src = '';
+            mapPreview.style.display = 'none';
+          }
+        } else {
+          mapIframe.src = '';
+          mapPreview.style.display = 'none';
+        }
         lucide.createIcons();
         document.getElementById('modal-pocket').classList.add('active');
       };
@@ -1934,6 +1955,8 @@
       const closePocketModal = () => {
         document.getElementById('modal-pocket').classList.remove('active');
         editingPocketId = null;
+        document.getElementById('pocket-map-iframe').src = '';
+        document.getElementById('pocket-map-preview').style.display = 'none';
       };
       // 貼 Google Maps URL → 自動帶出名稱
       document.getElementById('pocket-url-input').addEventListener('input', () => {

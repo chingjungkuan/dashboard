@@ -718,6 +718,19 @@ main {
   color: var(--accent-cyan);
 }
 
+.modal-header .btn-icon {
+  background: transparent;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+.modal-header .btn-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: var(--text-primary);
+}
+
 .btn-cancel,
 .btn-add-metric,
 .btn-delete-type {
