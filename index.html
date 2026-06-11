@@ -1933,16 +1933,9 @@
         // 地圖預覽
         const mapPreview = document.getElementById('pocket-map-preview');
         const mapIframe = document.getElementById('pocket-map-iframe');
-        if (!isAdding && item.url) {
-          const match = item.url.match(/maps\/place\/([^/]+)/);
-          if (match) {
-            const q = decodeURIComponent(match[1]).replace(/\+/g, ' ');
-            mapIframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed`;
-            mapPreview.style.display = '';
-          } else {
-            mapIframe.src = '';
-            mapPreview.style.display = 'none';
-          }
+        if (!isAdding && item.name) {
+          mapIframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(item.name)}&output=embed`;
+          mapPreview.style.display = '';
         } else {
           mapIframe.src = '';
           mapPreview.style.display = 'none';
