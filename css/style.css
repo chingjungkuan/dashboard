@@ -354,7 +354,7 @@ main {
   padding-top: 1.5rem;
 }
 
-/* ── 自訂模組卡片（job / rental / gym mod）四邊 24px ── */
+/* ── 自訂模組卡片（rental / gym mod）四邊 24px ── */
 .custom-module-card {
   padding: 1.5rem;
 }
@@ -913,7 +913,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 /* Job card */
-.card.type-job,
 .card.type-rental {
   align-self: start;
 }
@@ -980,25 +979,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   font-weight: 600;
 }
 
-.status-pending {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-muted);
-}
-
-.status-interview {
-  background: rgba(0, 240, 255, 0.15);
-  color: var(--accent-cyan);
-}
-
-.status-accepted {
-  background: rgba(67, 233, 123, 0.15);
-  color: #43e97b;
-}
-
-.status-rejected {
-  background: rgba(255, 0, 85, 0.15);
-  color: var(--accent-pink);
-}
 
 .meta-text {
   display: inline-flex;

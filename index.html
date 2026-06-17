@@ -45,10 +45,7 @@
         <div class="dash-icon"><i data-lucide="dumbbell"></i></div>
         <h3>健身房紀錄</h3>
       </div>
-      <div class="dash-card" data-target="job">
-        <div class="dash-icon"><i data-lucide="briefcase"></i></div>
-        <h3>求職紀錄</h3>
-      </div>
+
       <div class="dash-card" data-target="rental">
         <div class="dash-icon"><i data-lucide="home"></i></div>
         <h3>租屋紀錄</h3>
@@ -211,11 +208,7 @@
           <h4>健身房紀錄</h4>
           <p>追蹤會籍次數<br>與出勤日曆</p>
         </div>
-        <div class="type-card" data-type="job">
-          <div class="type-card-icon"><i data-lucide="briefcase"></i></div>
-          <h4>求職追蹤紀錄</h4>
-          <p>記錄投遞狀況<br>與面試進度</p>
-        </div>
+
         <div class="type-card" data-type="rental">
           <div class="type-card-icon"><i data-lucide="home"></i></div>
           <h4>找租屋紀錄</h4>
@@ -250,32 +243,6 @@
           </label>
         </div>
 
-        <!-- ── 求職追蹤 欄位 ── -->
-        <div id="form-job" class="form-section" style="display:none;">
-          <label class="form-label">公司名稱 <span class="required">*</span>
-            <input type="text" class="form-input" id="form-job-company" placeholder="例：Google">
-          </label>
-          <label class="form-label">職位名稱 <span class="required">*</span>
-            <input type="text" class="form-input" id="form-job-position" placeholder="例：Software Engineer">
-          </label>
-          <label class="form-label">職缺連結
-            <input type="url" class="form-input" id="form-job-link" placeholder="https://...">
-          </label>
-          <label class="form-label">投遞日期
-            <input type="date" class="form-input" id="form-job-date">
-          </label>
-          <label class="form-label">目前狀態
-            <select class="form-input form-select" id="form-job-status">
-              <option value="投遞中">投遞中</option>
-              <option value="面試中">面試中</option>
-              <option value="已錄取">已錄取</option>
-              <option value="已拒絕">已拒絕</option>
-            </select>
-          </label>
-          <label class="form-label">備註
-            <textarea class="form-input form-textarea" id="form-job-notes" placeholder="任何補充資訊…"></textarea>
-          </label>
-        </div>
 
         <!-- ── 找租屋 欄位 ── -->
         <div id="form-rental" class="form-section" style="display:none;">
@@ -1078,34 +1045,6 @@
         return card;
       };
 
-      /* ── 求職追蹤卡片 ── */
-      const buildJobCard = (mod) => {
-        const card = document.createElement('div');
-        card.className = 'card custom-module-card type-job'; card.dataset.id = mod.id; card.dataset.type = 'job';
-        const scMap = { '投遞中': 'pending', '面試中': 'interview', '已錄取': 'accepted', '已拒絕': 'rejected' };
-        const sc = scMap[mod.status] || 'pending';
-        card.innerHTML = `
-          <span class="status-badge status-${sc}" style="align-self:flex-start;">${mod.status || '投遞中'}</span>
-          <div class="card-header">
-            <div class="job-header-main">
-              <div class="card-icon-inline"><i data-lucide="briefcase"></i></div>
-              <div class="job-header-text">
-                <h2 class="card-title">${mod.company}</h2>
-                <div class="card-subtitle">${mod.position}</div>
-              </div>
-            </div>
-            <button class="btn-icon btn-edit-custom" title="編輯"><i data-lucide="pencil" size="15"></i></button>
-          </div>
-          <div class="job-meta">
-            <div class="job-meta-left">
-              ${mod.appliedDate ? `<span class="meta-text"><i data-lucide="calendar" size="13"></i>${mod.appliedDate}</span>` : ''}
-            </div>
-            ${mod.link ? `<a href="${mod.link}" target="_blank" rel="noopener" class="module-link"><i data-lucide="external-link" size="14"></i>查看職缺</a>` : ''}
-          </div>
-          ${mod.notes ? `<p class="module-desc">${mod.notes}</p>` : ''}`;
-        card.querySelector('.btn-edit-custom').addEventListener('click', () => openFormModal('job', mod));
-        return card;
-      };
 
       /* ── 找租屋卡片 ── */
       const buildRentalCard = (mod) => {
@@ -1149,11 +1088,11 @@
         return card;
       };
 
-      /* ── 渲染所有自訂模組（gym/job/rental） ── */
+      /* ── 渲染所有自訂模組（gym/rental） ── */
       const renderCustomModules = () => {
         document.querySelectorAll('.custom-module-card').forEach(el => el.remove());
         const addBtn = document.getElementById('btn-add-module');
-        const builtinTypes = ['gym', 'job', 'rental'];
+        const builtinTypes = ['gym', 'rental'];
         const sortedModules = [...appData.customModules].sort((a, b) => {
           if (a.type === 'rental' && b.type === 'rental') {
             return (b.date || '') > (a.date || '') ? 1 : -1;
@@ -1163,7 +1102,6 @@
         sortedModules.forEach(mod => {
           let card;
           if (mod.type === 'gym') card = buildGymModCard(mod);
-          else if (mod.type === 'job') card = buildJobCard(mod);
           else if (mod.type === 'rental') card = buildRentalCard(mod);
           else return;
           // Immediately hide cards that don't match the current builtin view
@@ -1259,7 +1197,7 @@
           dashboardHeader.style.display = 'none';
           categoryView.style.display = 'block';
 
-          const builtinTitles = { gym: '健身房紀錄', job: '求職紀錄', rental: '租屋紀錄' };
+          const builtinTitles = { gym: '健身房紀錄', rental: '租屋紀錄' };
 
           // 刪除類別按鈕：只對自訂類別顯示
           btnDeleteType.style.display = builtinTitles[viewType] ? 'none' : 'flex';
@@ -1273,7 +1211,7 @@
             // 動態類別
             const ct = (appData.customTypes || []).find(t => t.id === viewType);
             categoryTitle.innerText = ct?.name || '';
-            // 移除上次的 custom-module-card（gym/job/rental）
+            // 移除上次的 custom-module-card（gym/rental）
             document.querySelectorAll('.custom-module-card').forEach(el => el.remove());
             renderDynamicTypeEntries(viewType);
           }
@@ -1324,7 +1262,7 @@
       });
 
       /* ── 表單 Modal ── */
-      const typeNames = { gym: '健身房紀錄', job: '求職追蹤紀錄', rental: '找租屋紀錄' };
+      const typeNames = { gym: '健身房紀錄', rental: '找租屋紀錄' };
 
       const openFormModal = (type, existingData = null) => {
         currentFormType = type;
@@ -1347,13 +1285,6 @@
           document.getElementById('form-gym-start').value = d?.startDate || formatStr(new Date());
           document.getElementById('form-gym-end').value = d?.endDate || formatStr(today2mEnd);
           document.getElementById('form-gym-total').value = d?.total || 20;
-        } else if (type === 'job') {
-          document.getElementById('form-job-company').value = d?.company || '';
-          document.getElementById('form-job-position').value = d?.position || '';
-          document.getElementById('form-job-link').value = d?.link || '';
-          document.getElementById('form-job-date').value = d?.appliedDate || formatStr(new Date());
-          document.getElementById('form-job-status').value = d?.status || '投遞中';
-          document.getElementById('form-job-notes').value = d?.notes || '';
         } else if (type === 'rental') {
           document.getElementById('form-rental-name').value = d?.name || '';
           document.getElementById('form-rental-link').value = d?.link || '';
@@ -1442,17 +1373,6 @@
           if (!start || !end || !total || total < 1) { alert('請填寫所有必填欄位'); return; }
           if (start > end) { alert('起始日不可晚於結束日'); return; }
           modData = { type: 'gym', startDate: start, endDate: end, total };
-        } else if (currentFormType === 'job') {
-          const company = document.getElementById('form-job-company').value.trim();
-          const position = document.getElementById('form-job-position').value.trim();
-          if (!company || !position) { alert('請填寫公司名稱與職位名稱'); return; }
-          modData = {
-            type: 'job', company, position,
-            link: document.getElementById('form-job-link').value.trim(),
-            appliedDate: document.getElementById('form-job-date').value,
-            status: document.getElementById('form-job-status').value,
-            notes: document.getElementById('form-job-notes').value.trim()
-          };
         } else if (currentFormType === 'rental') {
           const name = document.getElementById('form-rental-name').value.trim();
           if (!name) { alert('請填寫物件名稱'); return; }
@@ -1720,7 +1640,7 @@
 
       // 「新增同類模組」智慧路由
       document.getElementById('btn-add-module').addEventListener('click', () => {
-        const builtinTypes = ['gym', 'job', 'rental'];
+        const builtinTypes = ['gym', 'rental'];
         if (builtinTypes.includes(currentViewType)) {
           openFormModal(currentViewType);
         } else {
