@@ -32,47 +32,64 @@
   </header>
 
   <main>
-    <div class="dashboard-header">
-      <img src="image/img_avatar.jpg" alt="Lucy avatar" class="dashboard-avatar">
-      <h1 class="dashboard-title">Lucy's<br>Dashboard</h1>
-    </div>
-    <!-- Toast 通知（fixed，不佔 layout） -->
-    <div id="toast" role="alert" aria-live="polite">
-      <span id="toast-msg"></span>
-    </div>
+    <div id="toast" role="alert" aria-live="polite"><span id="toast-msg"></span></div>
+    <!-- 舊 view-dashboard 保留 id 供 JS 相容，不顯示 -->
+    <div id="view-dashboard" style="display:none;"></div>
+    <button id="btn-back-dash" style="display:none;"></button>
 
-    <!-- ── Dashboard 視圖 ── -->
-    <div class="dashboard-nav-grid" id="view-dashboard">
-      <div class="dash-card" data-target="gym">
-        <div class="dash-icon"><i data-lucide="dumbbell"></i></div>
-        <h3>健身房紀錄</h3>
-      </div>
-      <div class="dash-card" data-target="pocket">
-        <div class="dash-icon"><i data-lucide="heart"></i></div>
-        <h3>口袋名單</h3>
-      </div>
-      <div class="dash-card" data-target="rental">
-        <div class="dash-icon"><i data-lucide="home"></i></div>
-        <h3>租屋紀錄</h3>
-      </div>
-      <!-- 動態自訂類別卡片由 JS 插入在此處 -->
-      <div class="dash-card dash-add" id="dash-btn-add">
-        <div class="dash-icon"><i data-lucide="plus"></i></div>
-        <h3>新增項目</h3>
-      </div>
-    </div>
+    <div class="app-layout">
 
-    <!-- ── 類別分類視圖 ── -->
-    <div id="view-category" style="display:none;">
-      <div class="category-header">
-        <button class="btn-icon" id="btn-back-dash" style="width:auto; padding:0 0.8rem; gap:0.4rem;">
-          <i data-lucide="arrow-left" size="18"></i>
-        </button>
-        <h2 id="category-title" class="category-title">紀錄</h2>
-        <button class="btn-delete-type" id="btn-delete-type" style="display:none;">
-          <i data-lucide="trash-2" size="14"></i>刪除列表
-        </button>
-      </div>
+      <!-- ── SIDEBAR ─────────────────────────── -->
+      <nav class="sidebar">
+        <div class="sidebar-nav" id="sidebar-nav">
+          <div class="nav-item active" data-view="home">
+            <i data-lucide="layout-dashboard" size="16"></i><span>Home</span>
+          </div>
+          <div class="nav-item" data-view="gym">
+            <i data-lucide="dumbbell" size="16"></i><span>健身房紀錄</span>
+          </div>
+          <div class="nav-item" data-view="pocket">
+            <i data-lucide="heart" size="16"></i><span>口袋名單</span>
+          </div>
+          <div class="nav-item" data-view="rental">
+            <i data-lucide="house" size="16"></i><span>租屋紀錄</span>
+          </div>
+          <!-- 動態自訂類別由 JS 插入 -->
+        </div>
+        <div class="sidebar-footer">
+          <div class="nav-item nav-add" id="dash-btn-add">
+            <i data-lucide="plus" size="16"></i><span>新增項目</span>
+          </div>
+        </div>
+      </nav>
+
+      <!-- ── MAIN CONTENT ────────────────────── -->
+      <div class="main-content">
+
+        <!-- Home 視圖 -->
+        <div id="view-home">
+          <div class="dashboard-header">
+            <img src="image/img_avatar.jpg" alt="Lucy avatar" class="dashboard-avatar">
+            <div>
+              <h1 class="dashboard-title">Lucy's Dashboard</h1>
+              <p class="dashboard-subtitle">個人生活追蹤</p>
+            </div>
+          </div>
+          <div class="home-charts">
+            <div class="chart-card" id="chart-type"></div>
+            <div class="chart-card" id="chart-cuisine"></div>
+            <div class="chart-card" id="chart-city"></div>
+          </div>
+        </div>
+
+        <!-- ── 類別分類視圖 ── -->
+        <div id="view-category" style="display:none;">
+          <div class="category-header">
+            <h2 id="category-title" class="category-title">紀錄</h2>
+            <button class="btn-delete-type" id="btn-delete-type" style="display:none;">
+              <i data-lucide="trash-2" size="14"></i>刪除列表
+            </button>
+          </div>
 
       <div class="grid-container" id="grid-container">
 
@@ -156,15 +173,17 @@
 
     <!-- ── 口袋名單視圖 ── -->
     <div id="view-pocket" style="display:none;">
-      <div class="category-header">
-        <button class="btn-icon" id="btn-back-pocket">
-          <i data-lucide="arrow-left" size="18"></i>
-        </button>
-        <h2 class="category-title">口袋名單</h2>
-        <div style="display:flex;align-items:center;gap:0.75rem;margin-left:auto;">
-          <span class="pocket-count" id="pocket-count"></span>
-          <button class="btn-save" id="btn-pocket-add" style="padding:0.45rem 1rem;font-size:0.875rem;white-space:nowrap;">＋ 新增</button>
+      <div class="category-header" style="flex-wrap:wrap;gap:0.75rem;">
+        <div style="display:flex;flex-direction:column;gap:0.5rem;flex:1;min-width:0;">
+          <h2 class="category-title" style="margin:0;">口袋名單</h2>
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <div style="width:160px;height:10px;background:rgba(255,255,255,0.08);border-radius:var(--radius-full);overflow:hidden;flex-shrink:0;">
+              <div id="pocket-progress-fill" style="height:100%;border-radius:var(--radius-full);background:linear-gradient(90deg,#4A9EFF,#00D2FF);width:0%;transition:width 0.5s cubic-bezier(0.16,1,0.3,1);"></div>
+            </div>
+            <span id="pocket-count" style="font-size:var(--font-size-sm);color:var(--color-muted-foreground);white-space:nowrap;"></span>
+          </div>
         </div>
+        <button class="btn-save" id="btn-pocket-add" style="padding:0.45rem 1rem;font-size:0.875rem;white-space:nowrap;">＋ 新增</button>
       </div>
 
       <!-- Tab bar -->
@@ -192,7 +211,29 @@
       <!-- Cards grid -->
       <div class="pocket-grid" id="pocket-grid"></div>
     </div>
+
+      </div><!-- /.main-content -->
+    </div><!-- /.app-layout -->
   </main>
+
+  <!-- ── Mobile Bottom Navigation ── -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <div class="bottom-nav-item active" data-view="home">
+      <i data-lucide="layout-dashboard" size="20"></i><span>Home</span>
+    </div>
+    <div class="bottom-nav-item" data-view="gym">
+      <i data-lucide="dumbbell" size="20"></i><span>健身房</span>
+    </div>
+    <div class="bottom-nav-item" data-view="pocket">
+      <i data-lucide="heart" size="20"></i><span>口袋</span>
+    </div>
+    <div class="bottom-nav-item" data-view="rental">
+      <i data-lucide="house" size="20"></i><span>租屋</span>
+    </div>
+    <div class="bottom-nav-item nav-add" id="bottom-btn-add">
+      <i data-lucide="plus" size="20"></i><span>新增</span>
+    </div>
+  </nav>
 
   <!-- ══════════════════════════════════════
        Modal 1：選擇模組類型
@@ -448,30 +489,42 @@
       </div>
       <div class="modal-body" style="gap:1rem;">
         <!-- 地圖預覽（置頂） -->
-        <div id="pocket-map-preview" style="display:none;border-radius:12px;overflow:hidden;border:1px solid var(--border-color);">
-          <div id="pocket-leaflet-map" style="height:220px;"></div>
-          <a id="pocket-map-link" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.45rem;font-size:0.78rem;color:var(--text-muted);background:rgba(0,0,0,0.35);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-muted)'">
+        <div id="pocket-map-preview" style="display:none;border-radius:12px;overflow:hidden;border:1px solid var(--color-border);">
+          <div id="pocket-leaflet-map" style="height:200px;min-height:200px;max-height:200px;"></div>
+          <a id="pocket-map-link" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.45rem;font-size:var(--font-size-xs);color:var(--color-muted-foreground);background:rgba(0,0,0,0.35);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--color-muted-foreground)'">
             <i data-lucide="external-link" size="12"></i>在 Google Maps 開啟
           </a>
+        </div>
+        <!-- 到訪用餐 + Google Maps 連結（並排） -->
+        <div style="display:flex;gap:48px;align-items:flex-end;">
+          <div class="form-label pocket-visited-row" style="flex-shrink:0;flex-direction:column;align-items:flex-start;gap:0.4rem;">
+            <span style="font-size:var(--font-size-sm);color:var(--color-muted-foreground);">到訪</span>
+            <label class="switch-toggle">
+              <input type="checkbox" id="pocket-toggle-visited">
+              <span class="switch-track"></span>
+            </label>
+          </div>
+          <label class="form-label" id="pocket-url-field" style="flex:1;min-width:0;">Google Maps 連結 <span class="required" id="pocket-url-required">*</span>
+            <input class="form-input" id="pocket-url-input" placeholder="https://maps.google.com/..." autocomplete="off" type="url">
+          </label>
         </div>
         <!-- 名稱 -->
         <label class="form-label">名稱 <span class="required" id="pocket-name-required">*</span>
           <input class="form-input" id="pocket-name-input" placeholder="餐廳或地點名稱" autocomplete="off">
         </label>
-        <!-- Google Maps URL -->
-        <label class="form-label" id="pocket-url-field">Google Maps 連結 <span class="required" id="pocket-url-required">*</span>
-          <input class="form-input" id="pocket-url-input" placeholder="https://maps.google.com/..." autocomplete="off" type="url">
-        </label>
+        <!-- 類別 -->
         <label class="form-label">類別
           <div class="pocket-type-toggle">
             <button class="pocket-type-btn active" data-type="food">美食</button>
             <button class="pocket-type-btn" data-type="sight">景點</button>
           </div>
         </label>
+        <!-- 口味分類 -->
         <label class="form-label" id="pocket-cuisine-label">口味分類
           <select class="form-input form-select" id="pocket-cuisine-input"></select>
           <input class="form-input" id="pocket-cuisine-new" placeholder="輸入新分類名稱…" autocomplete="off" style="display:none;margin-top:0.5rem;">
         </label>
+        <!-- 城市/地區 -->
         <label class="form-label">城市 ／ 地區
           <div style="display:flex;gap:0.5rem;">
             <select class="form-input form-select" id="pocket-city-input" style="flex:1;min-width:0;"></select>
@@ -479,13 +532,7 @@
           </div>
           <input class="form-input" id="pocket-district-new" placeholder="輸入新地區名稱…" autocomplete="off" style="display:none;margin-top:0.5rem;">
         </label>
-        <div class="form-label pocket-visited-row">
-          <span>到訪用餐</span>
-          <label class="switch-toggle">
-            <input type="checkbox" id="pocket-toggle-visited">
-            <span class="switch-track"></span>
-          </label>
-        </div>
+        <!-- 美食筆記 -->
         <label class="form-label">美食筆記
           <textarea class="form-input form-textarea" id="pocket-note-input" placeholder="記下口感、推薦菜色、注意事項…"></textarea>
         </label>
@@ -1118,17 +1165,18 @@
       // 動態類別：Dashboard 卡片 & 類別頁面
       // ════════════════════════════════════════════════
 
-      /* ── 在 Dashboard 渲染自訂類別卡片 ── */
+      /* ── 渲染自訂類別到側邊欄 ── */
       const renderDashboardDynamicCards = () => {
-        document.querySelectorAll('.dash-card-dynamic').forEach(el => el.remove());
+        document.querySelectorAll('.nav-item-dynamic').forEach(el => el.remove());
+        const sidebarNav = document.getElementById('sidebar-nav');
         const addBtn = document.getElementById('dash-btn-add');
         (appData.customTypes || []).forEach(ct => {
-          const card = document.createElement('div');
-          card.className = 'dash-card dash-card-dynamic';
-          card.dataset.target = ct.id;
-          card.innerHTML = `<div class="dash-icon"><i data-lucide="layers"></i></div><h3>${ct.name}</h3>`;
-          card.addEventListener('click', () => switchView(ct.id));
-          addBtn.parentNode.insertBefore(card, addBtn);
+          const item = document.createElement('div');
+          item.className = 'nav-item nav-item-dynamic';
+          item.dataset.view = ct.id;
+          item.innerHTML = `<i data-lucide="layers" size="16"></i><span>${ct.name}</span>`;
+          item.addEventListener('click', () => switchView(ct.id));
+          sidebarNav.appendChild(item);
         });
         lucide.createIcons();
       };
@@ -1179,52 +1227,125 @@
       // ════════════════════════════════════════════════
       // SPA 路由
       // ════════════════════════════════════════════════
-      let currentViewType = 'dashboard';
+      // ── Home 頁圖表 ─────────────────────────────────
+      const isSight = (p) => p.type === 'sight' || ['景點/其他','自然景觀','歷史文化','娛樂活動'].includes(p.cuisine);
+
+      const renderBarChart = (containerId, data, title, colorFn) => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const sorted = Object.entries(data).sort((a,b) => b[1]-a[1]).slice(0,8);
+        const max = sorted[0]?.[1] || 1;
+        container.innerHTML = `
+          <h3 class="chart-title">${title}</h3>
+          <div class="chart-bars">
+            ${sorted.map(([label, count]) => `
+              <div class="bar-row">
+                <span class="bar-label" title="${label}">${label}</span>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width:${Math.round((count/max)*100)}%;${colorFn ? colorFn(label) : ''}"></div>
+                </div>
+                <span class="bar-value">${count}</span>
+              </div>`).join('')}
+          </div>`;
+      };
+
+      const renderHomeCharts = () => {
+        const list = appData.pocketList || [];
+        const total = list.length || 1;
+        const foodCount  = list.filter(p => !isSight(p)).length;
+        const sightCount = list.filter(p =>  isSight(p)).length;
+
+        // ── 圓餅圖：口袋名單類型 ──────────────────────
+        const chartTypeEl = document.getElementById('chart-type');
+        if (chartTypeEl) {
+          const r = 56, cx = 70, cy = 70, sw = 20;
+          const circ = 2 * Math.PI * r;
+          const foodDash  = (foodCount  / total) * circ;
+          const sightDash = (sightCount / total) * circ;
+          const foodPct  = Math.round((foodCount  / total) * 100);
+          const sightPct = Math.round((sightCount / total) * 100);
+          chartTypeEl.innerHTML = `
+            <h3 class="chart-title">口袋名單類型</h3>
+            <div style="display:flex;align-items:center;gap:1.5rem;margin-top:0.5rem;">
+              <svg width="140" height="140" viewBox="0 0 140 140" style="flex-shrink:0;">
+                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="${sw}"/>
+                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#4A9EFF" stroke-width="${sw}"
+                  stroke-dasharray="${foodDash} ${circ}" transform="rotate(-90 ${cx} ${cy})"/>
+                <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--color-primary)" stroke-width="${sw}"
+                  stroke-dasharray="${sightDash} ${circ}" stroke-dashoffset="${-foodDash}" transform="rotate(-90 ${cx} ${cy})"/>
+              </svg>
+              <div style="display:flex;flex-direction:column;gap:1.25rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                  <span style="width:10px;height:10px;border-radius:50%;background:#4A9EFF;flex-shrink:0;display:inline-block;"></span>
+                  <span style="color:var(--color-muted-foreground);font-size:var(--font-size-sm);">美食</span>
+                  <span style="font-size:1.75rem;font-weight:700;color:#4A9EFF;">${foodPct}%</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                  <span style="width:10px;height:10px;border-radius:50%;background:var(--color-primary);flex-shrink:0;display:inline-block;"></span>
+                  <span style="color:var(--color-muted-foreground);font-size:var(--font-size-sm);">景點</span>
+                  <span style="font-size:1.75rem;font-weight:700;color:var(--color-primary);">${sightPct}%</span>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        // ── 長條圖：美食類型分佈 ──────────────────────
+        const cuisineCount = {};
+        list.filter(p => !isSight(p)).forEach(p => {
+          const k = p.cuisine || '未分類';
+          cuisineCount[k] = (cuisineCount[k] || 0) + 1;
+        });
+        renderBarChart('chart-cuisine', cuisineCount, '▍ 美食類型分佈');
+
+        // ── 長條圖：縣市分佈 ─────────────────────────
+        const cityCount = {};
+        list.forEach(p => { const k = p.city || '未知'; cityCount[k] = (cityCount[k] || 0) + 1; });
+        renderBarChart('chart-city', cityCount, '▍ 縣市分佈');
+      };
+
+      let currentViewType = 'home';
 
       const switchView = (viewType) => {
         currentViewType = viewType;
-        const dashboard = document.getElementById('view-dashboard');
-        const dashboardHeader = document.querySelector('.dashboard-header');
+        const homeView     = document.getElementById('view-home');
         const categoryView = document.getElementById('view-category');
-        const categoryTitle = document.getElementById('category-title');
-        const btnDeleteType = document.getElementById('btn-delete-type');
+        const pocketView   = document.getElementById('view-pocket');
+        const categoryTitle  = document.getElementById('category-title');
+        const btnDeleteType  = document.getElementById('btn-delete-type');
 
-        if (viewType === 'dashboard') {
-          dashboard.style.display = 'grid';
-          dashboardHeader.style.display = 'flex';
-          categoryView.style.display = 'none';
+        // 更新 sidebar + bottom nav active 狀態
+        document.querySelectorAll('.nav-item[data-view], .bottom-nav-item[data-view]').forEach(item => {
+          item.classList.toggle('active', item.dataset.view === viewType);
+        });
+
+        // 隱藏所有主視圖
+        homeView.style.display     = 'none';
+        categoryView.style.display = 'none';
+        pocketView.style.display   = 'none';
+
+        if (viewType === 'home' || viewType === 'dashboard') {
+          homeView.style.display = 'block';
+          renderHomeCharts();
+        } else if (viewType === 'pocket') {
+          pocketView.style.display = 'block';
         } else {
-          dashboard.style.display = 'none';
-          dashboardHeader.style.display = 'none';
           categoryView.style.display = 'block';
-
           const builtinTitles = { gym: '健身房紀錄', rental: '租屋紀錄' };
-
-          // 刪除類別按鈕：只對自訂類別顯示
           btnDeleteType.style.display = builtinTitles[viewType] ? 'none' : 'flex';
 
           if (builtinTitles[viewType]) {
             categoryTitle.innerText = builtinTitles[viewType];
-            // 移除上次動態紀錄卡片
             document.querySelectorAll('.dynamic-entry-card').forEach(el => el.remove());
             renderCustomModules();
           } else {
-            // 動態類別
             const ct = (appData.customTypes || []).find(t => t.id === viewType);
             categoryTitle.innerText = ct?.name || '';
-            // 移除上次的 custom-module-card（gym/rental）
             document.querySelectorAll('.custom-module-card').forEach(el => el.remove());
             renderDynamicTypeEntries(viewType);
           }
-
-          // 顯示/隱藏 grid-container 中的卡片
           const cards = document.getElementById('grid-container').children;
           Array.from(cards).forEach(card => {
-            if (card.classList.contains(`type-${viewType}`) || card.id === 'btn-add-module') {
-              card.style.display = 'flex';
-            } else {
-              card.style.display = 'none';
-            }
+            card.style.display = (card.classList.contains(`type-${viewType}`) || card.id === 'btn-add-module') ? 'flex' : 'none';
           });
         }
         lucide.createIcons();
@@ -1611,7 +1732,7 @@
               if (error) throw error;
               closeConfirmModal();
               renderDashboardDynamicCards();
-              switchView('dashboard');
+              switchView('home');
               showToast('類別已刪除', 'success');
             } catch (err) {
               console.error('刪除失敗：', err);
@@ -1625,19 +1746,20 @@
       // 事件：Dashboard 與 Category 路由
       // ════════════════════════════════════════════════
 
-      // 靜態 dash-card 點擊（pocket 由專屬監聽器處理）
-      document.querySelectorAll('.dash-card[data-target]').forEach(card => {
-        if (card.dataset.target === 'pocket') return;
-        card.addEventListener('click', () => switchView(card.dataset.target));
+      // 側邊欄 + 底部 nav 點擊（共用邏輯）
+      document.querySelectorAll('.nav-item[data-view], .bottom-nav-item[data-view]').forEach(item => {
+        item.addEventListener('click', () => {
+          if (item.dataset.view === 'pocket') {
+            populatePocketFilters();
+            renderPocketGrid();
+          }
+          switchView(item.dataset.view);
+        });
       });
 
-      // 「新增項目」→ 建立新類別
-      document.getElementById('dash-btn-add').addEventListener('click', () => {
-        openCreatorModal();
-      });
-
-      // 返回儀表板
-      document.getElementById('btn-back-dash').addEventListener('click', () => switchView('dashboard'));
+      // 「新增項目」→ 建立新類別（sidebar + bottom nav）
+      document.getElementById('dash-btn-add').addEventListener('click', () => openCreatorModal());
+      document.getElementById('bottom-btn-add')?.addEventListener('click', () => openCreatorModal());
 
       // 「新增同類模組」智慧路由
       document.getElementById('btn-add-module').addEventListener('click', () => {
@@ -1655,16 +1777,27 @@
       // ════════════════════════════════════════════════
       let pocketActiveTab = 'food'; // 'food' | 'sight'
       const cityDistrictMap = {
-        '台北': ['信義區','南港區','內湖區','松山區','大安區','中山區','萬華區','其他'],
-        '基隆': ['仁愛區','信義區','中正區'],
-        '新北': ['貢寮區'],
-        '高雄': ['左營區','三民區','前金區','前鎮區','鳳山區','鼓山區'],
-        '台中': ['北區','南屯區'],
-        '台南': ['東區'],
-        '南投': ['埔里鎮'],
-        '屏東': ['滿州鄉'],
-        '日本': [],
-        '其他': [],
+        '台北': ['松山區','信義區','大安區','中山區','中正區','大同區','萬華區','文山區','南港區','內湖區','士林區','北投區','其他'],
+        '新北': ['板橋區','三重區','中和區','永和區','新莊區','新店區','淡水區','汐止區','土城區','蘆洲區','樹林區','鶯歌區','三峽區','瑞芳區','深坑區','石碇區','金山區','萬里區','貢寮區','雙溪區','平溪區','八里區','三芝區','石門區','坪林區','烏來區'],
+        '基隆': ['仁愛區','信義區','中正區','中山區','安樂區','暖暖區','七堵區'],
+        '桃園': ['桃園區','中壢區','大溪區','楊梅區','蘆竹區','大園區','龜山區','八德區','龍潭區','平鎮區','新屋區','觀音區','復興區'],
+        '新竹': ['東區','北區','香山區'],
+        '苗栗': ['苗栗市','竹南鎮','頭份市','通霄鎮','苑裡鎮','後龍鎮'],
+        '台中': ['中區','東區','南區','西區','北區','西屯區','南屯區','北屯區','豐原區','大里區','太平區','清水區','沙鹿區','梧棲區','大甲區','烏日區','大肚區','龍井區','霧峰區'],
+        '彰化': ['彰化市','鹿港鎮','員林市','和美鎮','溪湖鎮'],
+        '南投': ['南投市','埔里鎮','草屯鎮','竹山鎮','集集鎮','水里鄉'],
+        '雲林': ['斗六市','斗南鎮','虎尾鎮','西螺鎮','土庫鎮'],
+        '嘉義': ['東區','西區','番路鄉','梅山鄉','竹崎鄉','水上鄉'],
+        '台南': ['中西區','東區','南區','北區','安平區','安南區','永康區','歸仁區','新化區','左鎮區','玉井區','楠西區','南化區','仁德區','關廟區','龍崎區','官田區','麻豆區','佳里區','西港區','七股區','將軍區','學甲區','北門區','新營區','後壁區','白河區','東山區','六甲區','下營區','柳營區','鹽水區','善化區','大內區','山上區','新市區','安定區'],
+        '高雄': ['楠梓區','左營區','鼓山區','三民區','鹽埕區','前金區','新興區','苓雅區','前鎮區','旗津區','小港區','鳳山區','仁武區','大社區','岡山區','路竹區','阿蓮區','茄萣區','湖內區','彌陀區','永安區','燕巢區','橋頭區','梓官區','大寮區','林園區','鳥松區','大樹區','旗山區','美濃區'],
+        '屏東': ['屏東市','滿州鄉','恆春鎮','潮州鎮','東港鎮','林邊鄉','佳冬鄉','新埤鄉'],
+        '宜蘭': ['宜蘭市','羅東鎮','蘇澳鎮','頭城鎮','礁溪鄉','壯圍鄉','員山鄉','冬山鄉','五結鄉','三星鄉','大同鄉','南澳鄉'],
+        '花蓮': ['花蓮市','鳳林鎮','玉里鎮','新城鄉','吉安鄉','壽豐鄉','光復鄉','瑞穗鄉'],
+        '台東': ['台東市','成功鎮','關山鎮','卑南鄉','鹿野鄉','池上鄉'],
+        '澎湖': ['馬公市','湖西鄉','白沙鄉','西嶼鄉','望安鄉','七美鄉'],
+        '日本': ['東京','大阪','京都','北海道','沖繩','福岡','名古屋','其他'],
+        '海外': ['其他'],
+        '其他': ['其他'],
       };
       let pocketFilterCuisine = '';
       let pocketFilterCity = '';
@@ -1672,7 +1805,7 @@
       let pocketFilterVisited = 'all'; // 'all' | 'visited' | 'unvisited'
       let editingPocketId = null;
 
-      const isSight = item => item.type === 'sight' || (item.type === undefined && item.cuisine === '景點/其他');
+      // isSight defined above in renderHomeCharts section
 
       // populate filter dropdowns
       const updateFilterDistrictSelect = () => {
@@ -1715,6 +1848,10 @@
         const visitedCount = tabList.filter(p => p.visited).length;
         const isSightTab = pocketActiveTab === 'sight';
         document.getElementById('pocket-count').textContent = `${visitedCount}/${tabList.length} ${isSightTab ? '去過' : '吃過'}`;
+        const pct = tabList.length > 0 ? Math.round((visitedCount / tabList.length) * 100) : 0;
+        const fill = document.getElementById('pocket-progress-fill');
+        if (fill) fill.style.width = pct + '%';
+
 
         grid.innerHTML = '';
         list.forEach(item => {
@@ -1726,6 +1863,7 @@
               <span class="pocket-tag pocket-tag-district">${(item.city||'')+(item.district||'')}</span>
             </div>
             <h3 class="pocket-name">${item.name}</h3>
+            ${item.nearestStation ? `<p class="pocket-station"><i data-lucide="train-front" size="11"></i>${item.nearestStation}</p>` : ''}
             ${item.note ? `<p class="pocket-note">${item.note}</p>` : ''}
             <div class="pocket-card-footer">
               <label class="switch-toggle switch-sm" onclick="event.stopPropagation()">
@@ -1765,9 +1903,109 @@
         lucide.createIcons();
       };
 
+      // ── 捷運站資料庫 ─────────────────────────────────
+      const mrtStations = [
+        // 台北 淡水信義線 (紅)
+        {n:'淡水',lat:25.1676,lon:121.4474},{n:'紅樹林',lat:25.1539,lon:121.4596},{n:'竹圍',lat:25.1441,lon:121.4692},{n:'關渡',lat:25.1324,lon:121.4644},{n:'復興崗',lat:25.1177,lon:121.4730},{n:'北投',lat:25.1318,lon:121.4990},{n:'新北投',lat:25.1369,lon:121.5009},{n:'石牌',lat:25.1002,lon:121.5053},{n:'明德',lat:25.0933,lon:121.5096},{n:'芝山',lat:25.0875,lon:121.5144},{n:'士林',lat:25.0938,lon:121.5256},{n:'劍潭',lat:25.0848,lon:121.5254},{n:'圓山',lat:25.0718,lon:121.5223},{n:'民權西路',lat:25.0629,lon:121.5194},{n:'中山',lat:25.0627,lon:121.5277},{n:'雙連',lat:25.0578,lon:121.5208},{n:'台大醫院',lat:25.0438,lon:121.5195},{n:'台北車站',lat:25.0480,lon:121.5170},{n:'中正紀念堂',lat:25.0323,lon:121.5183},{n:'東門',lat:25.0330,lon:121.5297},{n:'大安森林公園',lat:25.0295,lon:121.5369},{n:'大安',lat:25.0332,lon:121.5434},{n:'信義安和',lat:25.0312,lon:121.5527},{n:'台北101/世貿',lat:25.0330,lon:121.5627},{n:'象山',lat:25.0255,lon:121.5663},
+        // 板南線 (藍)
+        {n:'頂埔',lat:24.9711,lon:121.4369},{n:'永寧',lat:24.9836,lon:121.4494},{n:'土城',lat:24.9749,lon:121.4598},{n:'海山',lat:24.9785,lon:121.4719},{n:'亞東醫院',lat:24.9778,lon:121.4835},{n:'府中',lat:24.9799,lon:121.4991},{n:'板橋',lat:25.0143,lon:121.4635},{n:'新埔',lat:25.0225,lon:121.4729},{n:'江子翠',lat:25.0335,lon:121.4773},{n:'龍山寺',lat:25.0362,lon:121.4992},{n:'西門',lat:25.0434,lon:121.5063},{n:'善導寺',lat:25.0453,lon:121.5279},{n:'忠孝新生',lat:25.0429,lon:121.5319},{n:'忠孝復興',lat:25.0420,lon:121.5447},{n:'忠孝敦化',lat:25.0420,lon:121.5547},{n:'國父紀念館',lat:25.0400,lon:121.5645},{n:'市政府',lat:25.0413,lon:121.5657},{n:'永春',lat:25.0386,lon:121.5782},{n:'後山埤',lat:25.0369,lon:121.5877},{n:'昆陽',lat:25.0440,lon:121.5978},{n:'南港',lat:25.0543,lon:121.6073},{n:'南港展覽館',lat:25.0558,lon:121.6168},
+        // 松山新店線 (綠)
+        {n:'新店',lat:24.9743,lon:121.5353},{n:'新店區公所',lat:24.9811,lon:121.5397},{n:'七張',lat:24.9866,lon:121.5428},{n:'景美',lat:24.9974,lon:121.5416},{n:'萬隆',lat:25.0026,lon:121.5411},{n:'公館',lat:25.0133,lon:121.5340},{n:'台電大樓',lat:25.0213,lon:121.5302},{n:'古亭',lat:25.0218,lon:121.5226},{n:'中正紀念堂',lat:25.0323,lon:121.5183},{n:'小南門',lat:25.0388,lon:121.5111},{n:'西門',lat:25.0434,lon:121.5063},{n:'北門',lat:25.0491,lon:121.5100},{n:'中山',lat:25.0627,lon:121.5277},{n:'松江南京',lat:25.0530,lon:121.5330},{n:'行天宮',lat:25.0626,lon:121.5355},{n:'中山國小',lat:25.0700,lon:121.5388},{n:'南京復興',lat:25.0519,lon:121.5441},{n:'台北小巨蛋',lat:25.0519,lon:121.5498},{n:'南京三民',lat:25.0519,lon:121.5606},{n:'松山',lat:25.0499,lon:121.5779},
+        // 中和新蘆線 (橘)
+        {n:'迴龍',lat:24.9968,lon:121.4450},{n:'丹鳳',lat:24.9906,lon:121.4530},{n:'輔大',lat:24.9854,lon:121.4598},{n:'新莊',lat:24.9927,lon:121.4751},{n:'頭前庄',lat:25.0056,lon:121.4710},{n:'先嗇宮',lat:25.0213,lon:121.4825},{n:'三重',lat:25.0603,lon:121.4788},{n:'菜寮',lat:25.0554,lon:121.4874},{n:'三和國中',lat:25.0619,lon:121.4968},{n:'徐匯中學',lat:25.0520,lon:121.5053},{n:'台北橋',lat:25.0577,lon:121.5074},{n:'大橋頭',lat:25.0550,lon:121.5109},{n:'民權西路',lat:25.0629,lon:121.5194},{n:'中山國中',lat:25.0628,lon:121.5440},{n:'松江南京',lat:25.0530,lon:121.5330},{n:'行天宮',lat:25.0626,lon:121.5355},{n:'忠孝新生',lat:25.0429,lon:121.5319},{n:'東湖',lat:25.0697,lon:121.5945},{n:'內湖',lat:25.0834,lon:121.5877},{n:'大湖公園',lat:25.0862,lon:121.5837},{n:'葫洲',lat:25.0887,lon:121.5795},{n:'安和',lat:25.0462,lon:121.5621},{n:'南勢角',lat:25.0004,lon:121.5044},{n:'景安',lat:25.0023,lon:121.5141},{n:'永安市場',lat:25.0055,lon:121.5170},{n:'頂溪',lat:25.0088,lon:121.5150},{n:'古亭',lat:25.0218,lon:121.5226},{n:'東門',lat:25.0330,lon:121.5297},
+        // 高雄 紅線
+        {n:'南岡山',lat:22.7966,lon:120.3019},{n:'岡山',lat:22.7882,lon:120.3001},{n:'橋頭火車站',lat:22.7648,lon:120.3044},{n:'橋頭糖廠',lat:22.7552,lon:120.3064},{n:'左營',lat:22.6842,lon:120.3003},{n:'生態園區',lat:22.6746,lon:120.3003},{n:'凹子底',lat:22.6676,lon:120.3003},{n:'巨蛋',lat:22.6586,lon:120.3003},{n:'美麗島',lat:22.6270,lon:120.3022},{n:'中央公園',lat:22.6343,lon:120.3017},{n:'市議會',lat:22.6243,lon:120.3044},{n:'文化中心',lat:22.6191,lon:120.3066},{n:'五塊厝',lat:22.6095,lon:120.3091},{n:'獅甲',lat:22.6022,lon:120.3116},{n:'三多商圈',lat:22.6102,lon:120.2969},{n:'高雄車站',lat:22.6396,lon:120.3006},
+        // 高雄 橘線
+        {n:'西子灣',lat:22.6253,lon:120.2728},{n:'哈瑪星',lat:22.6282,lon:120.2810},{n:'鹽埕埔',lat:22.6270,lon:120.2879},{n:'市議會',lat:22.6243,lon:120.3044},{n:'大東',lat:22.6243,lon:120.3125},{n:'技擊館',lat:22.6248,lon:120.3214},{n:'衛武營',lat:22.6219,lon:120.3367},{n:'鳳山西',lat:22.6234,lon:120.3538},{n:'鳳山',lat:22.6218,lon:120.3598},{n:'大寮',lat:22.6007,lon:120.3879},
+      ];
+
+      const findNearestMRT = (lat, lon) => {
+        let nearest = null, minDist = Infinity;
+        const cosLat = Math.cos(lat * Math.PI / 180);
+        for (const s of mrtStations) {
+          const dLat = (s.lat - lat) * 111000;
+          const dLon = (s.lon - lon) * 111000 * cosLat;
+          const d = Math.sqrt(dLat * dLat + dLon * dLon);
+          if (d < minDist) { minDist = d; nearest = s; }
+        }
+        if (!nearest) return null;
+        const meters = Math.round(minDist);
+        const distStr = meters < 100 ? '附近' : meters < 1000 ? `${meters}m` : `${(meters/1000).toFixed(1)}km`;
+        return `${nearest.n} · ${distStr}`;
+      };
+
+      // 城市/地區 → 近似座標（不依賴外部 API）
+      const districtCoords = {
+        '台北': {
+          // 行政區
+          '中正區':[25.0326,121.5183],'大同區':[25.0628,121.5121],'中山區':[25.0632,121.5371],
+          '松山區':[25.0499,121.5598],'大安區':[25.0266,121.5420],'萬華區':[25.0317,121.4986],
+          '信義區':[25.0407,121.5666],'士林區':[25.0878,121.5236],'北投區':[25.1318,121.4990],
+          '內湖區':[25.0754,121.5846],'南港區':[25.0547,121.6065],'文山區':[24.9984,121.5697],
+          // 常用鄰里/捷運站名
+          '永春':[25.0386,121.5782],'後山埤':[25.0369,121.5877],'昆陽':[25.0440,121.5978],
+          '國父紀念館':[25.0400,121.5645],'市政府':[25.0413,121.5657],
+          '東區':[25.0420,121.5547],'忠孝敦化':[25.0420,121.5547],'忠孝復興':[25.0420,121.5447],
+          '公館':[25.0133,121.5340],'師大':[25.0213,121.5302],'古亭':[25.0218,121.5226],
+          '木柵':[25.0147,121.5799],'景美':[24.9974,121.5416],'萬隆':[25.0026,121.5411],
+          '石牌':[25.1002,121.5053],'天母':[25.0953,121.5267],'劍潭':[25.0848,121.5254],
+          '西門':[25.0434,121.5063],'龍山寺':[25.0362,121.4992],'艋舺':[25.0362,121.4992],
+          '南港':[25.0543,121.6073],'汐止':[25.0697,121.6540],
+          '其他':[25.0529,121.5435],
+        },
+        '新北': {
+          '板橋區':[25.0143,121.4635],'三重區':[25.0603,121.4788],'中和區':[25.0004,121.5044],
+          '永和區':[25.0088,121.5150],'新莊區':[24.9927,121.4751],'新店區':[24.9743,121.5353],
+          '淡水區':[25.1676,121.4474],'汐止區':[25.0697,121.6540],'土城區':[24.9749,121.4598],
+          '蘆洲區':[25.0897,121.4730],'樹林區':[24.9840,121.4200],'鶯歌區':[24.9573,121.3451],
+          '其他':[25.0143,121.4635],
+        },
+        '基隆': { '仁愛區':[25.1282,121.7416],'中正區':[25.1286,121.7432],'其他':[25.1286,121.7432] },
+        '桃園': { '桃園區':[24.9936,121.3010],'中壢區':[24.9590,121.2256],'其他':[24.9936,121.3010] },
+        '台中': {
+          '北區':[24.1569,120.6845],'南區':[24.1174,120.6800],'西區':[24.1414,120.6614],
+          '東區':[24.1383,120.7020],'西屯區':[24.1765,120.6262],'南屯區':[24.1228,120.6448],
+          '北屯區':[24.1849,120.7014],'豐原區':[24.2524,120.7194],'大里區':[24.0965,120.6841],
+          '其他':[24.1477,120.6736],
+        },
+        '台南': {
+          '中西區':[22.9998,120.2000],'東區':[22.9930,120.2231],'南區':[22.9793,120.1981],
+          '北區':[23.0129,120.2077],'安平區':[22.9927,120.1601],'安南區':[23.0447,120.1720],
+          '永康區':[23.0328,120.2630],'歸仁區':[22.9690,120.2933],'善化區':[23.1414,120.3026],
+          '其他':[22.9998,120.2000],
+        },
+        '高雄': {
+          '左營區':[22.6842,120.3003],'三民區':[22.6396,120.3006],'鼓山區':[22.6530,120.2821],
+          '苓雅區':[22.6243,120.3125],'前鎮區':[22.5998,120.3207],'鳳山區':[22.6218,120.3598],
+          '楠梓區':[22.7285,120.3375],'仁武區':[22.7024,120.3497],'前金區':[22.6270,120.3022],
+          '新興區':[22.6293,120.3017],'鹽埕區':[22.6253,120.2728],'其他':[22.6396,120.3006],
+        },
+      };
+
+      const geocodeAndSetStation = async (item) => {
+        if (!item.city || item.city === '日本' || item.city === '海外') return;
+        const nom = async (q) => {
+          const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=tw`);
+          const d = await r.json();
+          return d?.[0] ? [parseFloat(d[0].lat), parseFloat(d[0].lon)] : null;
+        };
+        try {
+          let coord = await nom([item.name, item.district, item.city].filter(Boolean).join(' '));
+          if (!coord) coord = await nom([item.district, item.city].filter(Boolean).join(' '));
+          if (!coord) {
+            const cityMap = districtCoords[item.city];
+            const c = cityMap?.[item.district] || cityMap?.['其他'];
+            if (c) coord = c;
+          }
+          if (!coord) return;
+          item.lat = coord[0]; item.lon = coord[1];
+          item.nearestStation = findNearestMRT(coord[0], coord[1]);
+        } catch(e) {}
+      };
+
       // Leaflet 地圖（不用 iframe，不受 X-Frame-Options 限制）
       let _pocketMap = null;
-      const showPocketMap = async (url, name, city) => {
+      const showPocketMap = async (url, name, city, district) => {
         const mapPreview = document.getElementById('pocket-map-preview');
         const mapLink    = document.getElementById('pocket-map-link');
         if (!name) { mapPreview.style.display = 'none'; return; }
@@ -1775,29 +2013,56 @@
         mapLink.href = url || `https://www.google.com/maps/search/?q=${encodeURIComponent(name)}`;
         mapPreview.style.display = '';
 
-        // 清除舊地圖
         if (_pocketMap) { _pocketMap.remove(); _pocketMap = null; }
 
-        // 初始化 Leaflet，先顯示台灣中心
         const mapDiv = document.getElementById('pocket-leaflet-map');
         _pocketMap = L.map(mapDiv, { zoomControl: true, scrollWheelZoom: false });
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+          attribution: '© <a href="https://stadiamaps.com/">Stadia</a> © <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+          maxZoom: 20
         }).addTo(_pocketMap);
         _pocketMap.setView([23.6978, 120.9605], 7);
+        setTimeout(() => _pocketMap?.invalidateSize(), 100);
 
-        // Nominatim 查坐標
-        try {
-          const query = city ? `${name} ${city}` : name;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=tw`
-          );
+        // 先查城市座標作為驗證基準（確保搜到的地點在對的城市範圍內）
+        let cityLat = null, cityLon = null;
+        const nominatim = async (q, zoom, validateCity = false) => {
+          const cc = (city && city !== '日本' && city !== '海外' && city !== '其他') ? '&countrycodes=tw' : '';
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=3${cc}`);
           const data = await res.json();
-          if (data && data[0]) {
-            const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
-            _pocketMap.setView([lat, lon], 17);
-            L.marker([lat, lon]).addTo(_pocketMap);
+          if (!data || !data[0]) return false;
+
+          for (const result of data) {
+            const lat = parseFloat(result.lat), lon = parseFloat(result.lon);
+            // 若有城市基準，檢查距離（超過 80km 視為錯誤結果）
+            if (validateCity && cityLat !== null) {
+              const dist = Math.sqrt((lat - cityLat) ** 2 + (lon - cityLon) ** 2) * 111;
+              if (dist > 80) continue;
+            }
+            _pocketMap.setView([lat, lon], zoom);
+            if (zoom >= 15) L.marker([lat, lon]).addTo(_pocketMap);
+            return true;
           }
+          return false;
+        };
+
+        try {
+          // 先取城市座標
+          if (city) {
+            const cityRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ' 台灣')}&format=json&limit=1&countrycodes=tw`);
+            const cityData = await cityRes.json();
+            if (cityData?.[0]) { cityLat = parseFloat(cityData[0].lat); cityLon = parseFloat(cityData[0].lon); }
+          }
+          // 1. 店名 + 地區 + 城市（最精確）
+          if (district && city && await nominatim(`${name} ${district} ${city}`, 17, true)) return;
+          // 2. 店名 + 城市
+          if (city && await nominatim(`${name} ${city}`, 17, true)) return;
+          // 3. 只搜店名（加距離驗證）
+          if (await nominatim(name, 17, true)) return;
+          // 4. zoom 到地區
+          if (district && city && await nominatim(`${district} ${city}`, 15)) return;
+          // 5. zoom 到城市
+          if (city && await nominatim(city, 13)) return;
         } catch(e) {}
       };
 
@@ -1884,7 +2149,7 @@
         lucide.createIcons();
         document.getElementById('modal-pocket').classList.add('active');
         // 地圖必須在 modal 顯示後才初始化，Leaflet 需要 div 有尺寸
-        if (!isAdding) setTimeout(() => showPocketMap(item.url, item.name, item.city), 50);
+        if (!isAdding) setTimeout(() => showPocketMap(item.url, item.name, item.city, item.district), 50);
         else { if (_pocketMap) { _pocketMap.remove(); _pocketMap = null; } document.getElementById('pocket-map-preview').style.display = 'none'; }
       };
 
@@ -1945,21 +2210,37 @@
             type: selectedType, visited: false, note: document.getElementById('pocket-note-input').value.trim()
           };
           appData.pocketList.unshift(newItem);
+          closePocketModal();
+          renderPocketGrid();
+          await saveState();
+          await geocodeAndSetStation(newItem);
+          renderPocketGrid();
+          await saveState();
+          return;
         } else {
           // 編輯模式
           const idx = appData.pocketList.findIndex(p => p.id === editingPocketId);
           if (idx === -1) return;
+          const target = appData.pocketList[idx];
           const editName = document.getElementById('pocket-name-input').value.trim();
-          if (editName) appData.pocketList[idx].name = editName;
+          if (editName) target.name = editName;
           const editUrl = document.getElementById('pocket-url-input').value.trim();
-          if (editUrl) appData.pocketList[idx].url = editUrl;
-          appData.pocketList[idx].visited = document.getElementById('pocket-toggle-visited').checked;
-          appData.pocketList[idx].type = selectedType;
-          if (cVal !== '__new__') appData.pocketList[idx].cuisine = cVal;
-          else if (cNew) appData.pocketList[idx].cuisine = cNew;
-          appData.pocketList[idx].city = cityVal;
-          appData.pocketList[idx].district = district;
-          appData.pocketList[idx].note = document.getElementById('pocket-note-input').value.trim();
+          if (editUrl) target.url = editUrl;
+          target.visited = document.getElementById('pocket-toggle-visited').checked;
+          target.type = selectedType;
+          if (cVal !== '__new__') target.cuisine = cVal;
+          else if (cNew) target.cuisine = cNew;
+          target.city = cityVal;
+          target.district = district;
+          target.note = document.getElementById('pocket-note-input').value.trim();
+          delete target.lat; delete target.lon; delete target.nearestStation;
+          closePocketModal();
+          renderPocketGrid();
+          await saveState();
+          await geocodeAndSetStation(target);
+          renderPocketGrid();
+          await saveState();
+          return;
         }
         closePocketModal();
         renderPocketGrid();
@@ -2003,26 +2284,33 @@
         });
       });
 
-      document.getElementById('btn-back-pocket').addEventListener('click', () => {
-        document.getElementById('view-pocket').style.display = 'none';
-        document.getElementById('view-dashboard').style.display = 'grid';
-        document.querySelector('.dashboard-header').style.display = 'flex';
-      });
+      document.getElementById('btn-back-pocket')?.addEventListener('click', () => switchView('home'));
 
-      document.querySelector('.dash-card[data-target="pocket"]').addEventListener('click', () => {
-        document.getElementById('view-dashboard').style.display = 'none';
-        document.querySelector('.dashboard-header').style.display = 'none';
-        document.getElementById('view-pocket').style.display = 'block';
-        populatePocketFilters();
-        renderPocketGrid();
-      });
+      // ── 批量補全捷運站（背景執行，含速率限制）──────────
+      (async () => {
+        const todo = (appData.pocketList || []).filter(p => !p.nearestStation && p.city && p.city !== '日本' && p.city !== '海外');
+        if (!todo.length) return;
+        showToast(`開始補全 ${todo.length} 筆捷運站資料…`, 'info', 0);
+        let done = 0;
+        for (const item of todo) {
+          await geocodeAndSetStation(item);
+          done++;
+          if (done % 5 === 0 || done === todo.length) {
+            showToast(`捷運站補全中 ${done}/${todo.length}…`, 'info', 0);
+            renderPocketGrid();
+            await saveState();
+          }
+          if (done < todo.length) await new Promise(r => setTimeout(r, 1100));
+        }
+        showToast(`✅ 捷運站資料補全完成（${done} 筆）`, 'success');
+      })();
 
       // ── 初始渲染 ─────────────────────────────────────
       updateGymUI();
       renderCalendar();
       renderCustomModules();
       renderDashboardDynamicCards();
-      switchView('dashboard');
+      switchView('home');
     });
   </script>
 </body>
