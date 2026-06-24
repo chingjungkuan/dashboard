@@ -22,6 +22,30 @@
 </head>
 
 <body>
+
+  <!-- ── Lock Screen ── -->
+  <div id="lock-screen">
+    <div class="lock-card">
+      <img src="image/img_avatar.jpg" alt="avatar" class="lock-avatar">
+      <h1 class="lock-title">Lucy's Dashboard</h1>
+
+      <div id="lock-mode-setup" style="display:none;">
+        <p class="lock-subtitle">首次使用，請設定存取密碼</p>
+        <input type="password" class="form-input lock-input" id="lock-setup-pw" placeholder="設定密碼" autocomplete="new-password">
+        <input type="password" class="form-input lock-input" id="lock-setup-confirm" placeholder="確認密碼" autocomplete="new-password">
+        <button class="btn-save lock-btn" id="btn-lock-setup">設定密碼</button>
+        <p class="lock-error" id="lock-setup-error"></p>
+      </div>
+
+      <div id="lock-mode-login" style="display:none;">
+        <p class="lock-subtitle">輸入密碼解鎖</p>
+        <input type="password" class="form-input lock-input" id="lock-pw-input" placeholder="密碼" autocomplete="current-password">
+        <button class="btn-save lock-btn" id="btn-lock-unlock">解鎖</button>
+        <p class="lock-error" id="lock-error"></p>
+      </div>
+    </div>
+  </div>
+
   <div class="ambient-glow-1"></div>
   <div class="ambient-glow-2"></div>
 
@@ -53,6 +77,9 @@
           </div>
           <div class="nav-item" data-view="rental">
             <i data-lucide="house" size="16"></i><span>租屋紀錄</span>
+          </div>
+          <div class="nav-item" data-view="fonts">
+            <i data-lucide="type" size="16"></i><span>字體探索</span>
           </div>
           <!-- 動態自訂類別由 JS 插入 -->
         </div>
@@ -212,6 +239,51 @@
       <div class="pocket-grid" id="pocket-grid"></div>
     </div>
 
+        <!-- ── 字體探索視圖 ── -->
+        <div id="view-fonts" style="display:none;">
+          <div class="category-header">
+            <h2 class="category-title">字體探索</h2>
+          </div>
+
+          <!-- API Key 設定 -->
+          <div class="font-api-setup" id="font-api-setup">
+            <div class="font-api-notice">
+              <i data-lucide="key" size="15"></i>
+              <span>需要 Anthropic API Key 才能使用 AI 搜尋</span>
+              <button class="font-api-change-btn" id="btn-change-api-key" style="display:none;">更換</button>
+            </div>
+            <div class="font-api-form" id="font-api-form">
+              <input type="password" class="form-input" id="font-api-key-input" placeholder="sk-ant-api03-…">
+              <button class="btn-save" id="btn-save-api-key">儲存</button>
+            </div>
+            <p class="font-api-hint">Key 只存在你的瀏覽器，不會上傳到任何地方</p>
+          </div>
+
+          <!-- 搜尋區 -->
+          <div class="font-search-section">
+            <div class="font-search-row">
+              <input type="text" class="form-input font-search-input" id="font-search-input" placeholder="輸入字體名稱，例：Kepler Std、Bodoni、Didot…">
+              <button class="btn-save font-search-btn" id="btn-font-search">
+                <i data-lucide="search" size="15"></i>找相似字體
+              </button>
+            </div>
+            <p id="font-search-status" class="font-search-status"></p>
+          </div>
+
+          <!-- 搜尋結果 -->
+          <div id="font-results" style="display:none;">
+            <h3 class="font-section-title" id="font-results-title">相似字體推薦</h3>
+            <div class="font-grid" id="font-results-grid"></div>
+          </div>
+
+          <!-- 我的收藏 -->
+          <div class="font-collection-section">
+            <h3 class="font-section-title">我的字體收藏 <span id="font-collection-count" class="font-count-badge"></span></h3>
+            <div class="font-grid" id="font-collection-grid"></div>
+            <p id="font-collection-empty" class="font-empty-hint" style="display:none;">還沒有收藏字體，搜尋後點「加入收藏」開始建立你的字體庫</p>
+          </div>
+        </div>
+
       </div><!-- /.main-content -->
     </div><!-- /.app-layout -->
   </main>
@@ -229,6 +301,9 @@
     </div>
     <div class="bottom-nav-item" data-view="rental">
       <i data-lucide="house" size="20"></i><span>租屋</span>
+    </div>
+    <div class="bottom-nav-item" data-view="fonts">
+      <i data-lucide="type" size="20"></i><span>字體</span>
     </div>
     <div class="bottom-nav-item nav-add" id="bottom-btn-add">
       <i data-lucide="plus" size="20"></i><span>新增</span>
@@ -552,6 +627,62 @@
     document.addEventListener('DOMContentLoaded', async () => {
       lucide.createIcons();
 
+      // ── Lock Screen ───────────────────────────────────
+      const LOCK_HASH_KEY = 'dashboard_lock_hash';
+      const LOCK_SESSION  = 'dashboard_unlocked';
+
+      const hashPw = async (pw) => {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+      };
+
+      const showLockScreen = () => {
+        const stored = localStorage.getItem(LOCK_HASH_KEY);
+        if (stored) {
+          document.getElementById('lock-mode-login').style.display = 'flex';
+          setTimeout(() => document.getElementById('lock-pw-input').focus(), 100);
+        } else {
+          document.getElementById('lock-mode-setup').style.display = 'flex';
+          setTimeout(() => document.getElementById('lock-setup-pw').focus(), 100);
+        }
+        document.getElementById('lock-screen').style.display = 'flex';
+      };
+
+      const unlock = () => {
+        sessionStorage.setItem(LOCK_SESSION, '1');
+        document.getElementById('lock-screen').style.display = 'none';
+      };
+
+      if (!sessionStorage.getItem(LOCK_SESSION)) showLockScreen();
+
+      document.getElementById('btn-lock-setup').addEventListener('click', async () => {
+        const pw  = document.getElementById('lock-setup-pw').value;
+        const cfm = document.getElementById('lock-setup-confirm').value;
+        const err = document.getElementById('lock-setup-error');
+        if (pw.length < 4) { err.textContent = '密碼至少 4 個字元'; return; }
+        if (pw !== cfm)    { err.textContent = '兩次密碼不一致'; return; }
+        localStorage.setItem(LOCK_HASH_KEY, await hashPw(pw));
+        unlock();
+      });
+      document.getElementById('lock-setup-confirm').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('btn-lock-setup').click();
+      });
+
+      document.getElementById('btn-lock-unlock').addEventListener('click', async () => {
+        const pw  = document.getElementById('lock-pw-input').value;
+        const err = document.getElementById('lock-error');
+        if ((await hashPw(pw)) === localStorage.getItem(LOCK_HASH_KEY)) {
+          err.textContent = ''; unlock();
+        } else {
+          err.textContent = '密碼錯誤';
+          document.getElementById('lock-pw-input').value = '';
+          document.getElementById('lock-pw-input').focus();
+        }
+      });
+      document.getElementById('lock-pw-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('btn-lock-unlock').click();
+      });
+
       // ── JSONBin.io ────────────────────────────────────
       const JSONBIN_KEY = '$2a$10$TxsupRh7kHjCZb3VceR.xehsu2Ff0jG3.nz.c5mi4F67I9Z5qacmy';
       const JSONBIN_BIN = '69eedda0856a68218977c12e';
@@ -674,7 +805,8 @@
         customModules: [],
         customTypes: [],
         dynamicEntries: [],
-        pocketList: defaultPocketList
+        pocketList: defaultPocketList,
+        fontCollection: []
       };
 
       let appData = JSON.parse(JSON.stringify(defaultData));
@@ -686,6 +818,7 @@
         if (!Array.isArray(appData.customTypes))     appData.customTypes    = [];
         if (!Array.isArray(appData.dynamicEntries))  appData.dynamicEntries = [];
         if (!Array.isArray(appData.pocketList) || appData.pocketList.length === 0) appData.pocketList = defaultPocketList;
+        if (!Array.isArray(appData.fontCollection))  appData.fontCollection = [];
         appData.pocketList.forEach(item => {
           const def = defaultPocketList.find(d => d.id === item.id);
           if (def) { item.city = def.city; item.district = def.district; item.name = def.name; item.url = def.url; }
@@ -1310,6 +1443,7 @@
         const homeView     = document.getElementById('view-home');
         const categoryView = document.getElementById('view-category');
         const pocketView   = document.getElementById('view-pocket');
+        const fontsView    = document.getElementById('view-fonts');
         const categoryTitle  = document.getElementById('category-title');
         const btnDeleteType  = document.getElementById('btn-delete-type');
 
@@ -1322,12 +1456,16 @@
         homeView.style.display     = 'none';
         categoryView.style.display = 'none';
         pocketView.style.display   = 'none';
+        fontsView.style.display    = 'none';
 
         if (viewType === 'home' || viewType === 'dashboard') {
           homeView.style.display = 'block';
           renderHomeCharts();
         } else if (viewType === 'pocket') {
           pocketView.style.display = 'block';
+        } else if (viewType === 'fonts') {
+          fontsView.style.display = 'block';
+          initFontView();
         } else {
           categoryView.style.display = 'block';
           const builtinTitles = { gym: '健身房紀錄', rental: '租屋紀錄' };
@@ -2304,6 +2442,232 @@
         }
         showToast(`✅ 捷運站資料補全完成（${done} 筆）`, 'success');
       })();
+
+      // ════════════════════════════════════════════════
+      // 字體探索
+      // ════════════════════════════════════════════════
+      const FONT_KEY_STORAGE = 'dashboard_anthropic_key';
+      let _fontViewInited = false;
+
+      const initFontView = () => {
+        renderFontCollection();
+        const key = localStorage.getItem(FONT_KEY_STORAGE);
+        const setup = document.getElementById('font-api-setup');
+        const form  = document.getElementById('font-api-form');
+        const hint  = setup.querySelector('.font-api-hint');
+        const changeBtn = document.getElementById('btn-change-api-key');
+        if (key) {
+          form.style.display  = 'none';
+          hint.style.display  = 'none';
+          changeBtn.style.display = '';
+          setup.querySelector('.font-api-notice span').textContent = 'API Key 已設定';
+        } else {
+          form.style.display  = '';
+          hint.style.display  = '';
+          changeBtn.style.display = 'none';
+          setup.querySelector('.font-api-notice span').textContent = '需要 Anthropic API Key 才能使用 AI 搜尋';
+        }
+        if (!_fontViewInited) {
+          _fontViewInited = true;
+          document.getElementById('btn-font-search').addEventListener('click', searchSimilarFonts);
+          document.getElementById('font-search-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') searchSimilarFonts();
+          });
+        }
+      };
+
+      document.getElementById('btn-save-api-key').addEventListener('click', () => {
+        const key = document.getElementById('font-api-key-input').value.trim();
+        if (!key.startsWith('sk-ant-')) {
+          showToast('請輸入有效的 API Key（sk-ant- 開頭）', 'warning');
+          return;
+        }
+        localStorage.setItem(FONT_KEY_STORAGE, key);
+        document.getElementById('font-api-key-input').value = '';
+        initFontView();
+        showToast('API Key 已儲存', 'success');
+      });
+
+      document.getElementById('btn-change-api-key').addEventListener('click', () => {
+        const form = document.getElementById('font-api-form');
+        const hint = document.getElementById('font-api-setup').querySelector('.font-api-hint');
+        form.style.display = '';
+        hint.style.display = '';
+        document.getElementById('font-search-input').focus();
+      });
+
+      const searchSimilarFonts = async () => {
+        const fontName = document.getElementById('font-search-input').value.trim();
+        if (!fontName) { showToast('請輸入字體名稱', 'warning'); return; }
+
+        const apiKey = localStorage.getItem(FONT_KEY_STORAGE);
+        if (!apiKey) {
+          document.getElementById('font-api-form').style.display = '';
+          document.getElementById('font-api-setup').querySelector('.font-api-hint').style.display = '';
+          showToast('請先設定 API Key', 'warning');
+          return;
+        }
+
+        const btn    = document.getElementById('btn-font-search');
+        const status = document.getElementById('font-search-status');
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" size="15" class="spin"></i>搜尋中…';
+        status.textContent = '';
+        status.style.color = '';
+        document.getElementById('font-results').style.display = 'none';
+        lucide.createIcons();
+
+        try {
+          const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKey,
+              'anthropic-version': '2023-06-01',
+              'anthropic-dangerous-direct-browser-access': 'true',
+            },
+            body: JSON.stringify({
+              model: 'claude-haiku-4-5-20251001',
+              max_tokens: 1024,
+              messages: [{
+                role: 'user',
+                content: `你是字型設計專家。請推薦 5 個與「${fontName}」視覺風格相似的字體，商業免費皆可。
+
+只回傳 JSON 陣列，不要任何其他文字：
+[{"name":"字體名稱","type":"免費或商業","source":"Google Fonts 或 Adobe Fonts 或 Fontspring 或其他","reason":"相似原因，20字內，繁體中文","link":"資源頁面網址或空字串"}]`
+              }]
+            })
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error?.message || `HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+          const text = data.content[0].text;
+          const match = text.match(/\[[\s\S]*\]/);
+          if (!match) throw new Error('無法解析回應格式');
+
+          const fonts = JSON.parse(match[0]);
+          renderFontResults(fontName, fonts);
+
+        } catch (err) {
+          console.error('字體搜尋失敗：', err);
+          status.textContent = `搜尋失敗：${err.message}`;
+          status.style.color = 'var(--color-destructive)';
+          if (err.message.includes('401') || err.message.includes('403')) {
+            showToast('API Key 無效，請重新設定', 'danger');
+            localStorage.removeItem(FONT_KEY_STORAGE);
+            initFontView();
+          }
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="search" size="15"></i>找相似字體';
+          lucide.createIcons();
+        }
+      };
+
+      const renderFontResults = (queryName, fonts) => {
+        const grid = document.getElementById('font-results-grid');
+        document.getElementById('font-results-title').textContent = `「${queryName}」的相似字體`;
+        grid.innerHTML = '';
+        fonts.forEach(font => {
+          const card = document.createElement('div');
+          card.className = 'font-card';
+          card.innerHTML = `
+            <div class="font-card-header">
+              <div class="font-card-info">
+                <h4 class="font-card-name">${font.name}</h4>
+                <div class="font-card-tags">
+                  <span class="font-tag font-tag-${font.type === '免費' ? 'free' : 'paid'}">${font.type}</span>
+                  <span class="font-tag font-tag-source">${font.source}</span>
+                </div>
+              </div>
+              <button class="btn-icon btn-font-bookmark" title="加入收藏">
+                <i data-lucide="bookmark-plus" size="16"></i>
+              </button>
+            </div>
+            <p class="font-card-reason">${font.reason}</p>
+            ${font.link ? `<a href="${font.link}" target="_blank" rel="noopener" class="font-card-link"><i data-lucide="external-link" size="12"></i>查看字體</a>` : ''}`;
+          card.querySelector('.btn-font-bookmark').addEventListener('click', () => saveToFontCollection(font, queryName));
+          grid.appendChild(card);
+        });
+        document.getElementById('font-results').style.display = 'block';
+        lucide.createIcons();
+      };
+
+      const saveToFontCollection = async (font, queryFrom) => {
+        if (!appData.fontCollection) appData.fontCollection = [];
+        if (appData.fontCollection.find(f => f.name.toLowerCase() === font.name.toLowerCase())) {
+          showToast(`「${font.name}」已在收藏中`, 'warning');
+          return;
+        }
+        appData.fontCollection.unshift({
+          id: `fc-${Date.now()}`,
+          name: font.name,
+          type: font.type,
+          source: font.source,
+          reason: font.reason,
+          link: font.link || '',
+          queryFrom,
+          addedAt: new Date().toISOString()
+        });
+        renderFontCollection();
+        await saveState();
+        showToast(`已收藏「${font.name}」`, 'success');
+      };
+
+      const renderFontCollection = () => {
+        const grid    = document.getElementById('font-collection-grid');
+        const empty   = document.getElementById('font-collection-empty');
+        const countEl = document.getElementById('font-collection-count');
+        if (!grid) return;
+        const collection = appData.fontCollection || [];
+        countEl.textContent = collection.length > 0 ? collection.length : '';
+        if (collection.length === 0) {
+          grid.innerHTML = '';
+          empty.style.display = '';
+          return;
+        }
+        empty.style.display = 'none';
+        grid.innerHTML = '';
+        collection.forEach(font => {
+          const card = document.createElement('div');
+          card.className = 'font-card is-saved';
+          card.innerHTML = `
+            <div class="font-card-header">
+              <div class="font-card-info">
+                <h4 class="font-card-name">${font.name}</h4>
+                <div class="font-card-tags">
+                  <span class="font-tag font-tag-${font.type === '免費' ? 'free' : 'paid'}">${font.type}</span>
+                  <span class="font-tag font-tag-source">${font.source}</span>
+                </div>
+              </div>
+              <button class="btn-icon btn-font-delete" title="移除收藏">
+                <i data-lucide="trash-2" size="15"></i>
+              </button>
+            </div>
+            <p class="font-card-reason">${font.reason}</p>
+            ${font.queryFrom ? `<p class="font-card-from">查詢來源：${font.queryFrom}</p>` : ''}
+            ${font.link ? `<a href="${font.link}" target="_blank" rel="noopener" class="font-card-link"><i data-lucide="external-link" size="12"></i>查看字體</a>` : ''}`;
+          card.querySelector('.btn-font-delete').addEventListener('click', () => {
+            openConfirmModal(
+              '移除收藏？',
+              `確定要從收藏中移除「<strong>${font.name}</strong>」嗎？`,
+              '確定移除',
+              async () => {
+                appData.fontCollection = appData.fontCollection.filter(f => f.id !== font.id);
+                renderFontCollection();
+                await saveState();
+                showToast(`已移除「${font.name}」`, 'success');
+              }
+            );
+          });
+          grid.appendChild(card);
+        });
+        lucide.createIcons();
+      };
 
       // ── 初始渲染 ─────────────────────────────────────
       updateGymUI();
