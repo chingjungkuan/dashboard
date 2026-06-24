@@ -29,15 +29,7 @@
       <img src="image/img_avatar.jpg" alt="avatar" class="lock-avatar">
       <h1 class="lock-title">Lucy's Dashboard</h1>
 
-      <div id="lock-mode-setup" style="display:none;">
-        <p class="lock-subtitle">首次使用，請設定存取密碼</p>
-        <input type="password" class="form-input lock-input" id="lock-setup-pw" placeholder="設定密碼" autocomplete="new-password">
-        <input type="password" class="form-input lock-input" id="lock-setup-confirm" placeholder="確認密碼" autocomplete="new-password">
-        <button class="btn-save lock-btn" id="btn-lock-setup">設定密碼</button>
-        <p class="lock-error" id="lock-setup-error"></p>
-      </div>
-
-      <div id="lock-mode-login" style="display:none;">
+      <div id="lock-mode-login">
         <p class="lock-subtitle">輸入密碼解鎖</p>
         <input type="password" class="form-input lock-input" id="lock-pw-input" placeholder="密碼" autocomplete="current-password">
         <button class="btn-save lock-btn" id="btn-lock-unlock">解鎖</button>
@@ -628,24 +620,12 @@
       lucide.createIcons();
 
       // ── Lock Screen ───────────────────────────────────
-      const LOCK_HASH_KEY = 'dashboard_lock_hash';
-      const LOCK_SESSION  = 'dashboard_unlocked';
+      const LOCK_HASH    = '1d1379edcb5835156679b6843a35d866c026c58ef000dd7c7686c2a2fc60c45e';
+      const LOCK_SESSION = 'dashboard_unlocked';
 
       const hashPw = async (pw) => {
         const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
         return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-      };
-
-      const showLockScreen = () => {
-        const stored = localStorage.getItem(LOCK_HASH_KEY);
-        if (stored) {
-          document.getElementById('lock-mode-login').style.display = 'flex';
-          setTimeout(() => document.getElementById('lock-pw-input').focus(), 100);
-        } else {
-          document.getElementById('lock-mode-setup').style.display = 'flex';
-          setTimeout(() => document.getElementById('lock-setup-pw').focus(), 100);
-        }
-        document.getElementById('lock-screen').style.display = 'flex';
       };
 
       const unlock = () => {
@@ -653,25 +633,15 @@
         document.getElementById('lock-screen').style.display = 'none';
       };
 
-      if (!sessionStorage.getItem(LOCK_SESSION)) showLockScreen();
-
-      document.getElementById('btn-lock-setup').addEventListener('click', async () => {
-        const pw  = document.getElementById('lock-setup-pw').value;
-        const cfm = document.getElementById('lock-setup-confirm').value;
-        const err = document.getElementById('lock-setup-error');
-        if (pw.length < 4) { err.textContent = '密碼至少 4 個字元'; return; }
-        if (pw !== cfm)    { err.textContent = '兩次密碼不一致'; return; }
-        localStorage.setItem(LOCK_HASH_KEY, await hashPw(pw));
-        unlock();
-      });
-      document.getElementById('lock-setup-confirm').addEventListener('keydown', e => {
-        if (e.key === 'Enter') document.getElementById('btn-lock-setup').click();
-      });
+      if (!sessionStorage.getItem(LOCK_SESSION)) {
+        document.getElementById('lock-screen').style.display = 'flex';
+        setTimeout(() => document.getElementById('lock-pw-input').focus(), 100);
+      }
 
       document.getElementById('btn-lock-unlock').addEventListener('click', async () => {
         const pw  = document.getElementById('lock-pw-input').value;
         const err = document.getElementById('lock-error');
-        if ((await hashPw(pw)) === localStorage.getItem(LOCK_HASH_KEY)) {
+        if ((await hashPw(pw)) === LOCK_HASH) {
           err.textContent = ''; unlock();
         } else {
           err.textContent = '密碼錯誤';
