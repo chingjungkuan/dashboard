@@ -61,6 +61,9 @@
           <div class="nav-item active" data-view="home">
             <i data-lucide="layout-dashboard" size="16"></i><span>Home</span>
           </div>
+          <div class="nav-item" data-view="fonts">
+            <i data-lucide="type" size="16"></i><span>字體探索</span>
+          </div>
           <div class="nav-item" data-view="gym">
             <i data-lucide="dumbbell" size="16"></i><span>健身房紀錄</span>
           </div>
@@ -69,9 +72,6 @@
           </div>
           <div class="nav-item" data-view="rental">
             <i data-lucide="house" size="16"></i><span>租屋紀錄</span>
-          </div>
-          <div class="nav-item" data-view="fonts">
-            <i data-lucide="type" size="16"></i><span>字體探索</span>
           </div>
           <!-- 動態自訂類別由 JS 插入 -->
         </div>
@@ -233,47 +233,76 @@
 
         <!-- ── 字體探索視圖 ── -->
         <div id="view-fonts" style="display:none;">
-          <div class="category-header">
-            <h2 class="category-title">字體探索</h2>
-          </div>
 
-          <!-- API Key 設定 -->
-          <div class="font-api-setup" id="font-api-setup">
-            <div class="font-api-notice">
+          <!-- 頁首：標題 + API Key inline -->
+          <div class="font-view-header">
+            <h2 class="category-title" style="margin:0;">字體探索</h2>
+            <div class="font-api-inline" id="font-api-setup">
               <i data-lucide="key" size="15"></i>
-              <span>需要 Anthropic API Key 才能使用 AI 搜尋</span>
-              <button class="font-api-change-btn" id="btn-change-api-key" style="display:none;">更換</button>
+              <div class="font-api-notice">
+                <span>需要 API Key 才能使用 AI 搜尋</span>
+                <button class="font-api-change-btn" id="btn-change-api-key" style="display:none;">更換</button>
+              </div>
+              <div class="font-api-form" id="font-api-form">
+                <input type="password" class="form-input font-api-input-sm" id="font-api-key-input" placeholder="sk-ant-api03-…">
+                <button class="btn-save" id="btn-save-api-key">儲存</button>
+              </div>
+              <p class="font-api-hint" style="display:none;font-size:var(--font-size-xs);opacity:0.6;">Key 只存在你的瀏覽器</p>
             </div>
-            <div class="font-api-form" id="font-api-form">
-              <input type="password" class="form-input" id="font-api-key-input" placeholder="sk-ant-api03-…">
-              <button class="btn-save" id="btn-save-api-key">儲存</button>
-            </div>
-            <p class="font-api-hint">Key 只存在你的瀏覽器，不會上傳到任何地方</p>
           </div>
 
-          <!-- 搜尋區 -->
-          <div class="font-search-section">
-            <div class="font-search-row">
-              <input type="text" class="form-input font-search-input" id="font-search-input" placeholder="輸入字體名稱，例：Kepler Std、Bodoni、Didot…">
-              <button class="btn-save font-search-btn" id="btn-font-search">
-                <i data-lucide="search" size="15"></i>找相似字體
-              </button>
+          <!-- 主體：兩欄 -->
+          <div class="font-view-body">
+
+            <!-- 左欄：僅搜尋 -->
+            <div class="font-search-card">
+              <div class="font-search-section">
+                <div class="font-search-row">
+                  <input type="text" class="form-input font-search-input" id="font-search-input" placeholder="輸入字體名稱，例：Kepler Std、Bodoni、Didot…">
+                  <button class="btn-save font-search-btn" id="btn-font-search">
+                    <i data-lucide="search" size="15"></i>找相似字體
+                  </button>
+                </div>
+                <p id="font-search-status" class="font-search-status"></p>
+              </div>
+
+              <div id="font-results" style="display:none;">
+                <h3 class="font-section-title" id="font-results-title">相似字體推薦</h3>
+                <div class="font-grid" id="font-results-grid"></div>
+              </div>
             </div>
-            <p id="font-search-status" class="font-search-status"></p>
-          </div>
 
-          <!-- 搜尋結果 -->
-          <div id="font-results" style="display:none;">
-            <h3 class="font-section-title" id="font-results-title">相似字體推薦</h3>
-            <div class="font-grid" id="font-results-grid"></div>
-          </div>
+            <!-- 右欄：字型資料庫 -->
+            <div class="font-db-col">
+              <div class="font-db-section">
+                <div style="display:flex;align-items:center;gap:var(--spacing-2);margin-bottom:var(--spacing-4);">
+                  <h3 class="font-db-title">字型資料庫</h3>
+                  <span class="font-count-badge" id="font-db-count"></span>
+                </div>
+                <input type="text" class="form-input font-preview-input" id="font-preview-text" value="南去經三國，東來過五湖" maxlength="30" placeholder="輸入預覽文字">
+                <div class="font-filter-row" id="font-type-filter">
+                  <button class="font-filter-btn active" data-type="">全部</button>
+                  <button class="font-filter-btn" data-type="gothic">黑體</button>
+                  <button class="font-filter-btn" data-type="mincho">明體</button>
+                  <button class="font-filter-btn" data-type="round">圓體</button>
+                  <button class="font-filter-btn" data-type="handwrite">手寫</button>
+                  <button class="font-filter-btn" data-type="brush">毛筆</button>
+                  <button class="font-filter-btn" data-type="kai">楷體</button>
+                  <button class="font-filter-btn" data-type="display">特色</button>
+                </div>
+                <div class="font-filter-row" id="font-license-filter">
+                  <button class="font-filter-btn active" data-license="">全部授權</button>
+                  <button class="font-filter-btn" data-license="free">免費</button>
+                  <button class="font-filter-btn" data-license="mac">Mac 內建</button>
+                  <button class="font-filter-btn" data-license="adobe">Adobe</button>
+                  <button class="font-filter-btn" data-license="paid">付費</button>
+                </div>
+                <div class="font-grid" id="font-db-grid"></div>
+              </div>
+            </div>
 
-          <!-- 我的收藏 -->
-          <div class="font-collection-section">
-            <h3 class="font-section-title">我的字體收藏 <span id="font-collection-count" class="font-count-badge"></span></h3>
-            <div class="font-grid" id="font-collection-grid"></div>
-            <p id="font-collection-empty" class="font-empty-hint" style="display:none;">還沒有收藏字體，搜尋後點「加入收藏」開始建立你的字體庫</p>
           </div>
+        </div>
         </div>
 
       </div><!-- /.main-content -->
@@ -2414,13 +2443,256 @@
       })();
 
       // ════════════════════════════════════════════════
+      // 字型資料庫
+      // ════════════════════════════════════════════════
+      const FONT_DB = [
+        // ── 黑體 ──
+        { zhName:'思源黑體', enName:'Noto Sans TC', maker:'Google & Adobe', license:'free', type:'gothic', desc:'最廣泛使用的黑體，多種衍生字型皆由它改作', gFont:'Noto+Sans+TC:wght@400;700' },
+        { zhName:'台北黑體', enName:'TaipeiSans TC Beta', maker:'翰字鑄造 JT Foundry', license:'free', type:'gothic', desc:'以思源黑體為基礎，適合繁體中文的印刷風格黑體', gFont:null },
+        { zhName:'源樣黑體', enName:'GenYoGothic', maker:'But Ko', license:'free', type:'gothic', desc:'採用韓文版字符，較接近傳統印刷體，排列感整齊', gFont:null },
+        { zhName:'源石黑體', enName:'GenSekiGothic', maker:'But Ko', license:'free', type:'gothic', desc:'復古黑體風格，較有溫暖氣息，粗細對比強烈', gFont:null },
+        { zhName:'昭源黑體', enName:'Chiron Sans HK', maker:'(作者待確認)', license:'free', type:'gothic', desc:'現代筆形風格，平衡標準字形與印刷體習慣', gFont:null },
+        { zhName:'樺源黑體', enName:'Huayuan Gothic', maker:'伍梓豪', license:'free', type:'gothic', desc:'融合手寫韻味，部分字形取自台北黑體', gFont:null },
+        { zhName:'未來熒黑', enName:'Wêlai Glow Sans', maker:'Celestial Phineas', license:'free', type:'gothic', desc:'造型簡明現代，具有科技感，基於思源黑體與 Fira Sans', gFont:null },
+        { zhName:'源真黑體', enName:'Genshin Gothic', maker:'自家製フォント工房', license:'free', type:'gothic', desc:'由思源黑體日本語改作，較為銳利緊湊', gFont:null },
+        { zhName:'源暎黑體', enName:'GenEiMGothic', maker:'御琥祢屋', license:'free', type:'gothic', desc:'在漫畫、影片和遊戲字幕等各種情況下都易於閱讀', gFont:null },
+        { zhName:'M+ FONTS', enName:'M+ FONTS', maker:'森下浩司', license:'free', type:'gothic', desc:'有等寬、半寬及多種字重，多款日文黑體基於此改作', gFont:'M+PLUS+1p:wght@400;700' },
+        { zhName:'せのびゴシック', enName:'Senobi Gothic', maker:'MODI 工廠', license:'free', type:'gothic', desc:'M+ 衍生，經過機械壓縮所呈現的狹長黑體', gFont:null },
+        { zhName:'蘋方', enName:'PingFang', maker:'Apple', license:'mac', type:'gothic', desc:'簡約、現代、俐落，適合呈現科技感', gFont:null },
+        { zhName:'游ゴシック体', enName:'YuGothic', maker:'字游工房', license:'mac', type:'gothic', desc:'具傳統風格的日系黑體，呈現日系氛圍首選', gFont:null },
+        { zhName:'ヒラギノ角ゴシック体', enName:'Hiragino Sans', maker:'SCREEN', license:'mac', type:'gothic', desc:'10 種字重，標題到內文可統一風格，好用但有點缺字', gFont:null },
+        { zhName:'凸版文久見出しゴシック', enName:'Toppan Bunkyu Midashi Gothic', maker:'森澤 morisawa', license:'mac-adobe', type:'gothic', desc:'筆畫頂端有挑起，不常見但也是一種個性選擇', gFont:null },
+        { zhName:'小塚ゴシック', enName:'Kozuka Gothic Pr6N', maker:'小塚昌彦', license:'adobe', type:'gothic', desc:'R、DB、Midashi 多種選擇，用起來蠻好看有溫度', gFont:null },
+        { zhName:'わんぱくルイカ', enName:'WanpakuRuika', maker:'Type labo JP', license:'adobe', type:'gothic', desc:'充滿活力的黑體，Adobe Font 中只有一種字重（粗）', gFont:null },
+        // ── 明體 ──
+        { zhName:'思源宋體', enName:'Noto Serif TC', maker:'Google & Adobe', license:'free', type:'mincho', desc:'最廣泛使用的明體，若無特定風格這絕對好用', gFont:'Noto+Serif+TC:wght@400;700' },
+        { zhName:'源樣明體', enName:'Genyomin', maker:'But Ko', license:'free', type:'mincho', desc:'採用 KR 版字符，較接近傳統印刷體，排列感整齊', gFont:null },
+        { zhName:'源流明體', enName:'Genryumin', maker:'But Ko', license:'free', type:'mincho', desc:'在起收筆有粗細變化，重現鉛字壓印感，具文學氣息', gFont:null },
+        { zhName:'源雲明體', enName:'Genwanmin', maker:'But Ko', license:'free', type:'mincho', desc:'有點印章的墨暈感，適合較有溫度的設計', gFont:null },
+        { zhName:'花園明朝', enName:'HanaMinA', maker:'字形維基', license:'free', type:'mincho', desc:'非常輕盈，充滿文學氣息，字數非常多', gFont:null },
+        { zhName:'しっぽり明朝', enName:'Shippori Mincho', maker:'フリーフォントの樹', license:'free', type:'mincho', desc:'基於源流明朝，尖角做圓潤處理，優美的明朝體', gFont:'Shippori+Mincho:wght@400;700' },
+        { zhName:'源界明朝', enName:'Genkaimincho', maker:'FLOP DESIGN', license:'free', type:'mincho', desc:'基於思源宋體改造，風格強烈個性鮮明', gFont:null },
+        { zhName:'裝甲明朝', enName:'SoukouMincho', maker:'FLOP DESIGN', license:'free', type:'mincho', desc:'有強烈對比的明體，特色是橫筆極細', gFont:null },
+        { zhName:'匯文明朝', enName:'HuiWen', maker:'特里王', license:'free', type:'mincho', desc:'掃描歷史文獻，原滋原味的舊鉛字印刷風格，墨感較重', gFont:null },
+        { zhName:'IPA 明朝', enName:'IPAexMincho', maker:'IPA', license:'free', type:'mincho', desc:'由日本 IPA 機構開發，橫豎筆等寬，設計簡潔適合螢幕', gFont:null },
+        { zhName:'宋體', enName:'Songti', maker:'(待確認)', license:'mac', type:'mincho', desc:'相較其他明體筆畫更有起伏跳躍感，較有生命力', gFont:null },
+        { zhName:'ヒラギノ明朝体', enName:'Hiragino Mincho', maker:'SCREEN', license:'mac', type:'mincho', desc:'可以搭配 ヒラギノ角ゴシック体 使用，風格統一', gFont:null },
+        { zhName:'游明朝体', enName:'YuMincho', maker:'字游工坊', license:'mac-adobe', type:'mincho', desc:'優美的明體，Windows/Mac 都有內建', gFont:null },
+        { zhName:'凸版文久見出し明朝', enName:'Toppan Bunkyu Mincho', maker:'森澤 morisawa', license:'mac-adobe', type:'mincho', desc:'雕刻感強烈，較有溫度，Mac/Adobe 各兩種字重可商用', gFont:null },
+        { zhName:'凝書體', enName:'creamfont', maker:'施博瀚', license:'paid', type:'mincho', desc:'「源自生活簡單即美」，標題與內文都很好用', gFont:null },
+        { zhName:'汲古書體', enName:'chikuming', maker:'應永會', license:'paid', type:'mincho', desc:'每道筆畫留有不同細節，非常適用於復古風格呈現', gFont:null },
+        // ── 圓體 ──
+        { zhName:'源泉圓體', enName:'Gen Jyuu Gothic', maker:'But Ko', license:'free', type:'round', desc:'難得有多種字重且幾乎不缺字的免費圓體', gFont:null },
+        { zhName:'源柔ゴシック', enName:'Gen Jyuu Gothic', maker:'(source)', license:'free', type:'round', desc:'廣為使用的日系風格圓體，共三種圓角程度', gFont:'M+PLUS+Rounded+1c:wght@400;700' },
+        { zhName:'獅尾圓體', enName:'Swei Gothic', maker:'justfont', license:'free', type:'round', desc:'更加簡明現代化，筆順接近台灣教育部推薦', gFont:null },
+        { zhName:'jf open 粉圓', enName:'jf op 粉圓', maker:'justfont', license:'free', type:'round', desc:'只有一個字重，目前用下來最圓的免費可商用字型', gFont:'M+PLUS+Rounded+1c' },
+        { zhName:'いろはマル', enName:'irohamaru', maker:'MODI 工廠', license:'free', type:'round', desc:'基於源柔黑體改作，具一點復古感的柔和圓體', gFont:null },
+        { zhName:'瀨戶字型', enName:'SetoFont', maker:'Nontynet', license:'free', type:'round', desc:'手寫風的開源字體，給人可愛風格', gFont:null },
+        { zhName:'內海字體', enName:'Naikaifont', maker:'Max', license:'free', type:'round', desc:'基於瀨戶字體改作，補齊繁體中文常用字', gFont:null },
+        { zhName:'マメロン', enName:'mamelon', maker:'もじワク研究', license:'free', type:'round', desc:'充滿手寫感，解決數位時代黑明體缺乏溫度的問題', gFont:null },
+        { zhName:'時光機', enName:'timemachine', maker:'MODI 工廠', license:'free', type:'round', desc:'由和田研細丸改作，充滿復古且獨特風格的圓體', gFont:null },
+        { zhName:'ヒラギノ丸ゴpro', enName:'Hiragino Maru Gothic Pro', maker:'SCREEN', license:'mac', type:'round', desc:'有圓體的自然柔和與溫暖，Mac 可商用只有一種字重', gFont:null },
+        { zhName:'筑紫A丸ゴシック', enName:'Tsukushi A Round Gothic', maker:'Fontworks', license:'mac', type:'round', desc:'比思源改作的圓體更有輕盈柔和的圓潤感', gFont:null },
+        { zhName:'jf 金萱那提', enName:'jinxuan-latte', maker:'justfont', license:'paid', type:'round', desc:'有明體的優美，也有圓體的平易近人', gFont:null },
+        // ── 手寫 ──
+        { zhName:'よもぎフォント', enName:'Yomogi', maker:'Font Zone 108', license:'free', type:'handwrite', desc:'很細的手寫字型，蠻有溫度的', gFont:'Yomogi' },
+        { zhName:'たぬき油性マジック', enName:'Tanuki Permanent Marker', maker:'寺西化學工業', license:'free', type:'handwrite', desc:'油性麥克筆字型，粗糙質感，漢字很多', gFont:null },
+        { zhName:'おつとめフォント', enName:'OtsutomeFont', maker:'何某亭', license:'free', type:'handwrite', desc:'粗細不一致的筆觸，漢字很多', gFont:null },
+        { zhName:'JasonHandwriting', enName:'JasonHandwriting', maker:'台灣網友', license:'free', type:'handwrite', desc:'台灣網友自製手寫字型，有多種版本', gFont:null },
+        { zhName:'清松手寫', enName:'Qingsongshouxie', maker:'游清松', license:'free', type:'handwrite', desc:'台灣設計師手寫字型，灑脫飛揚充滿個性', gFont:null },
+        { zhName:'851チカラヅヨク', enName:'851CHIKARA', maker:'8:51:22 pm', license:'free', type:'handwrite', desc:'有種筆刷感的手寫字型', gFont:null },
+        { zhName:'追奇手寫體', enName:'Drechi Font', maker:'追奇', license:'paid', type:'handwrite', desc:'作家追奇的手寫字型，灑脫飛揚，充滿個性', gFont:null },
+        { zhName:'粒線體', enName:'lihsianti', maker:'Illy', license:'paid', type:'handwrite', desc:'Youtuber ILLY 的手寫字，適合社群貼文使用', gFont:null },
+        // ── 毛筆 ──
+        { zhName:'青柳隷書しも', enName:'Aoyagireisyo', maker:'青柳衡山', license:'free', type:'brush', desc:'由日本書法家青柳衡山製作，該網站有很多好看免費毛筆字', gFont:null },
+        { zhName:'Bakudai', enName:'Bakudai', maker:'Max', license:'free', type:'brush', desc:'由青柳衡山改作，補齊非常多中文字，較不會缺字', gFont:null },
+        { zhName:'TA演芸筆', enName:'TA-engeifude', maker:'手書きや本舗', license:'adobe', type:'brush', desc:'很好看的日系風格毛筆字，擁有 Adobe 授權即可使用', gFont:null },
+        { zhName:'TA風雅筆', enName:'TA fuga fude', maker:'手書きや本舗', license:'adobe', type:'brush', desc:'較有中國風的毛筆字，Adobe 授權可用', gFont:null },
+        { zhName:'TA香蘭', enName:'TA_kouran', maker:'手書きや本舗', license:'adobe', type:'brush', desc:'較輕盈隨性的毛筆字型，Adobe 授權可用', gFont:null },
+        // ── 楷體 ──
+        { zhName:'クレー', enName:'Klee One', maker:'Fontworks', license:'free', type:'kai', desc:'像用鉛筆或鋼筆手寫的字體，常見於日本字幕，適合內文', gFont:'Klee+One:wght@400;600' },
+        { zhName:'游教科書体', enName:'YuKyokasho', maker:'字游工坊', license:'mac', type:'kai', desc:'融合圓珠筆和鉛筆等硬毛筆書寫的筆跡，有楷體感但不死板', gFont:null },
+        { zhName:'報隸', enName:'Baoli', maker:'(待確認)', license:'mac', type:'kai', desc:'Mac 內建，較粗的隸書體，比隸變更活潑', gFont:null },
+        { zhName:'隸變', enName:'Libian', maker:'(待確認)', license:'mac', type:'kai', desc:'Mac 內建，較細的隸書體，適合復古設計', gFont:null },
+        { zhName:'拙楷體', enName:'cjkfonts', maker:'cjkfonts', license:'free', type:'kai', desc:'有楷體的外觀，加入手寫的調整，風格不嚴肅又平易近人', gFont:null },
+        // ── 特色 ──
+        { zhName:'getsuren', enName:'getsuren', maker:'aratakana', license:'free', type:'display', desc:'詢問度超高！缺字不多且完全免費，字型大補帖封面也是它', gFont:null },
+        { zhName:'激燃體', enName:'Burnfont', maker:'Font Zone 108', license:'free', type:'display', desc:'近年最紅字型，社群圖文、政府文宣都在用，超吸眼球', gFont:null },
+        { zhName:'Dela Gothic One', enName:'Dela Gothic One', maker:'Fontworks', license:'free', type:'display', desc:'飽滿粗壯的黑體，強烈視覺衝擊感', gFont:'Dela+Gothic+One' },
+        { zhName:'Potta One', enName:'Potta One', maker:'Fontworks', license:'free', type:'display', desc:'非常飽滿的圓體，可運用在復古風格標題上', gFont:'Potta+One' },
+        { zhName:'迴想體', enName:'Kaisotai', maker:'Font Zone 108', license:'free', type:'display', desc:'將水平空間壓扁，並將曲線以直線取代的個性字型', gFont:null },
+        { zhName:'Train One', enName:'Train One', maker:'Fontworks', license:'free', type:'display', desc:'有點像水管的字型，充滿玩趣', gFont:'Train+One' },
+        { zhName:'Stick', enName:'Stick', maker:'Fontworks', license:'free', type:'display', desc:'剪紙風字型，有雕刻感', gFont:'Stick' },
+        { zhName:'超極細ゴシック体', enName:'Chogokuboso Gothic', maker:'Line Font', license:'free', type:'display', desc:'超細字型，呈現特別風格時可以用，不能放太小', gFont:null },
+        { zhName:'DotGothic16', enName:'DotGothic16', maker:'Fontworks', license:'free', type:'display', desc:'辨識度最高、看起來最正式的點陣體', gFont:'DotGothic16' },
+        { zhName:'精品點陣體 7x7', enName:'BoutiqueBitmap7x7', maker:'Luke Liu', license:'free', type:'display', desc:'7x7 點陣體，可愛但辨識度沒那麼好，還有注音符號', gFont:null },
+        { zhName:'RocknRoll One', enName:'RocknRoll One', maker:'Fontworks', license:'free', type:'display', desc:'兼具可愛與辨識度的點陣風格字型', gFont:'RocknRoll+One' },
+        { zhName:'Reggae One', enName:'Reggae One', maker:'Fontworks', license:'free', type:'display', desc:'充滿活力與個性的裝飾字型', gFont:'Reggae+One' },
+        { zhName:'懷訪体', enName:'id-kaihou', maker:'(source)', license:'adobe', type:'display', desc:'具有日系風格的飽滿字型', gFont:null },
+        { zhName:'jf 金萱', enName:'jinxuan', maker:'justfont', license:'paid', type:'display', desc:'第一個群眾募資的中文字型，結合明體優雅與黑體清晰', gFont:null },
+      ];
+
+      let _dbTypeFilter = '';
+      let _dbLicenseFilter = '';
+      const _loadedGFonts = new Set();
+
+      const _isCjkFont = (name) => {
+        if (/[一-鿿぀-ゟ゠-ヿ]/.test(name)) return true;
+        return FONT_DB.some(f =>
+          f.zhName.toLowerCase() === name.toLowerCase() ||
+          f.enName.toLowerCase() === name.toLowerCase()
+        );
+      };
+
+      const EN_PREVIEW = 'Whereas disregard and contempt for human rights have resulted';
+
+      const _loadGFont = (param) => {
+        if (!param || _loadedGFonts.has(param)) return;
+        _loadedGFonts.add(param);
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${param}&display=swap`;
+        document.head.appendChild(link);
+      };
+
+      const _gFontFamily = (param) => param ? param.split(':')[0].replace(/\+/g, ' ') : '';
+
+      const _licenseLabel = (l) => ({ free:'免費', mac:'Mac 內建', 'mac-adobe':'Mac/Adobe', adobe:'Adobe', paid:'付費' }[l] || l);
+      const _licenseClass = (l) => ({ free:'font-tag-free', mac:'font-tag-mac', 'mac-adobe':'font-tag-mac', adobe:'font-tag-adobe', paid:'font-tag-paid' }[l] || 'font-tag-source');
+
+      const renderFontDB = () => {
+        const grid    = document.getElementById('font-db-grid');
+        const countEl = document.getElementById('font-db-count');
+        if (!grid) return;
+        const zhText = (document.getElementById('font-preview-text')?.value || '南去經三國，東來過五湖').trim() || '南去經三國，東來過五湖';
+        grid.innerHTML = '';
+
+        // ── 1. 收藏卡片優先顯示（套用篩選） ──────────────────
+        const collection = appData.fontCollection || [];
+        const shownKeys  = new Set();
+
+        collection.forEach(font => {
+          const dbEntry = FONT_DB.find(f =>
+            f.zhName.toLowerCase() === font.name.toLowerCase() ||
+            f.enName.toLowerCase() === font.name.toLowerCase()
+          );
+          // type 篩選
+          if (_dbTypeFilter && dbEntry && dbEntry.type !== _dbTypeFilter) return;
+          // license 篩選
+          if (_dbLicenseFilter) {
+            if (dbEntry) {
+              const lic = dbEntry.license;
+              const ok = lic === _dbLicenseFilter ||
+                (_dbLicenseFilter === 'mac'   && lic === 'mac-adobe') ||
+                (_dbLicenseFilter === 'adobe' && lic === 'mac-adobe');
+              if (!ok) return;
+            } else {
+              if (_dbLicenseFilter === 'free' && font.type !== '免費') return;
+              if (_dbLicenseFilter === 'paid' && font.type !== '付費') return;
+              if (_dbLicenseFilter === 'mac' || _dbLicenseFilter === 'adobe') return;
+            }
+          }
+
+          shownKeys.add(font.name.toLowerCase());
+
+          let fontFamily = '';
+          if (dbEntry?.gFont) { _loadGFont(dbEntry.gFont); fontFamily = _gFontFamily(dbEntry.gFont); }
+          else if (font.source === 'Google Fonts') {
+            const p = font.name.replace(/\s+/g, '+') + ':wght@400;700';
+            _loadGFont(p); fontFamily = font.name;
+          }
+          const pText = fontFamily ? (_isCjkFont(font.name) ? zhText : EN_PREVIEW) : '';
+
+          const card = document.createElement('div');
+          card.className = 'font-card is-saved';
+          card.innerHTML = `
+            <div class="font-collection-preview${fontFamily ? '' : ' no-gfont'}"
+                 style="${fontFamily ? `font-family:'${fontFamily}',sans-serif;` : ''}">
+              ${fontFamily ? pText : '（需下載字型才能預覽）'}
+            </div>
+            <div class="font-card-header">
+              <div class="font-card-info">
+                <h4 class="font-card-name">${font.name}</h4>
+                <div class="font-card-tags">
+                  <span class="font-tag font-tag-${font.type === '免費' ? 'free' : 'paid'}">${font.type}</span>
+                  <span class="font-tag font-tag-source">${font.source}</span>
+                </div>
+              </div>
+            </div>
+            <p class="font-card-reason">${font.reason}</p>
+            ${font.queryFrom ? `<p class="font-card-from">查詢來源：${font.queryFrom}</p>` : ''}
+            <div class="font-card-bottom">
+              ${font.link ? `<a href="${font.link}" target="_blank" rel="noopener" class="font-card-link"><i data-lucide="external-link" size="12"></i>查看字體</a>` : '<span></span>'}
+              <button class="btn-icon btn-font-delete" title="移除收藏"><i data-lucide="trash-2" size="15"></i></button>
+            </div>`;
+
+          card.querySelector('.btn-font-delete').addEventListener('click', () => {
+            openConfirmModal('移除收藏？',
+              `確定要從收藏中移除「<strong>${font.name}</strong>」嗎？`,
+              '確定移除',
+              async () => {
+                appData.fontCollection = appData.fontCollection.filter(f => f.id !== font.id);
+                renderFontDB();
+                await saveState();
+                showToast(`已移除「${font.name}」`, 'success');
+              }
+            );
+          });
+          grid.appendChild(card);
+        });
+
+        // ── 2. DB 卡片（套用篩選，跳過已收藏） ────────────────
+        const dbList = FONT_DB.filter(f => {
+          if (shownKeys.has(f.zhName.toLowerCase())) return false;
+          const typeOk = !_dbTypeFilter || f.type === _dbTypeFilter;
+          const lic = f.license;
+          const licOk = !_dbLicenseFilter ||
+            lic === _dbLicenseFilter ||
+            (_dbLicenseFilter === 'mac'   && lic === 'mac-adobe') ||
+            (_dbLicenseFilter === 'adobe' && lic === 'mac-adobe');
+          return typeOk && licOk;
+        });
+
+        countEl.textContent = shownKeys.size + dbList.length;
+        const savedNames = new Set(collection.map(f => f.name.toLowerCase()));
+
+        dbList.forEach(font => {
+          if (font.gFont) _loadGFont(font.gFont);
+          const family  = _gFontFamily(font.gFont);
+          const isSaved = savedNames.has(font.zhName.toLowerCase());
+
+          const card = document.createElement('div');
+          card.className = 'font-card';
+          card.innerHTML = `
+            <div class="font-db-preview${family ? '' : ' no-gfont'}"
+                 style="${family ? `font-family:'${family}',sans-serif;` : ''}">
+              ${family ? zhText : '（需下載字型才能預覽）'}
+            </div>
+            <div class="font-db-name-row">
+              <div>
+                <h4 class="font-card-name">${font.zhName}</h4>
+                <p class="font-db-en-name">${font.enName}</p>
+              </div>
+            </div>
+            <div class="font-card-tags">
+              <span class="font-tag ${_licenseClass(font.license)}">${_licenseLabel(font.license)}</span>
+              <span class="font-tag font-tag-source">${font.maker}</span>
+            </div>
+            <p class="font-card-reason">${font.desc}</p>`;
+          grid.appendChild(card);
+        });
+
+        lucide.createIcons();
+      };
+
+      // ════════════════════════════════════════════════
       // 字體探索
       // ════════════════════════════════════════════════
       const FONT_KEY_STORAGE = 'dashboard_anthropic_key';
       let _fontViewInited = false;
 
       const initFontView = () => {
-        renderFontCollection();
+        renderFontDB();
         const key = localStorage.getItem(FONT_KEY_STORAGE);
         const setup = document.getElementById('font-api-setup');
         const form  = document.getElementById('font-api-form');
@@ -2442,6 +2714,29 @@
           document.getElementById('btn-font-search').addEventListener('click', searchSimilarFonts);
           document.getElementById('font-search-input').addEventListener('keydown', e => {
             if (e.key === 'Enter') searchSimilarFonts();
+          });
+
+          // 預覽文字即時更新
+          document.getElementById('font-preview-text').addEventListener('input', () => renderFontDB());
+
+          // 分類篩選
+          document.getElementById('font-type-filter').addEventListener('click', e => {
+            const btn = e.target.closest('.font-filter-btn');
+            if (!btn) return;
+            document.querySelectorAll('#font-type-filter .font-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            _dbTypeFilter = btn.dataset.type;
+            renderFontDB();
+          });
+
+          // 授權篩選
+          document.getElementById('font-license-filter').addEventListener('click', e => {
+            const btn = e.target.closest('.font-filter-btn');
+            if (!btn) return;
+            document.querySelectorAll('#font-license-filter .font-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            _dbLicenseFilter = btn.dataset.license;
+            renderFontDB();
           });
         }
       };
@@ -2542,10 +2837,22 @@
         const grid = document.getElementById('font-results-grid');
         document.getElementById('font-results-title').textContent = `「${queryName}」的相似字體`;
         grid.innerHTML = '';
+        const zhText = document.getElementById('font-preview-text')?.value || '南去經三國，東來過五湖';
         fonts.forEach(font => {
+          let fontFamily = '';
+          if (font.source === 'Google Fonts') {
+            const p = font.name.replace(/\s+/g, '+') + ':wght@400;700';
+            _loadGFont(p); fontFamily = font.name;
+          }
+          const pText = fontFamily ? (_isCjkFont(font.name) ? zhText : EN_PREVIEW) : '';
+
           const card = document.createElement('div');
           card.className = 'font-card';
           card.innerHTML = `
+            <div class="font-collection-preview${fontFamily ? '' : ' no-gfont'}"
+                 style="${fontFamily ? `font-family:'${fontFamily}',sans-serif;` : ''}">
+              ${fontFamily ? pText : '（需下載字型才能預覽）'}
+            </div>
             <div class="font-card-header">
               <div class="font-card-info">
                 <h4 class="font-card-name">${font.name}</h4>
@@ -2554,7 +2861,7 @@
                   <span class="font-tag font-tag-source">${font.source}</span>
                 </div>
               </div>
-              <button class="btn-icon btn-font-bookmark" title="加入收藏">
+              <button class="btn-icon btn-font-bookmark" title="加入收藏" style="flex-shrink:0;">
                 <i data-lucide="bookmark-plus" size="16"></i>
               </button>
             </div>
@@ -2583,12 +2890,13 @@
           queryFrom,
           addedAt: new Date().toISOString()
         });
-        renderFontCollection();
+        renderFontDB();
         await saveState();
         showToast(`已收藏「${font.name}」`, 'success');
       };
 
-      const renderFontCollection = () => {
+      const renderFontCollection = () => renderFontDB();
+      const _renderFontCollection_legacy = () => {
         const grid    = document.getElementById('font-collection-grid');
         const empty   = document.getElementById('font-collection-empty');
         const countEl = document.getElementById('font-collection-count');
@@ -2602,10 +2910,34 @@
         }
         empty.style.display = 'none';
         grid.innerHTML = '';
+        const zhPreviewText = document.getElementById('font-preview-text')?.value || '南去經三國，東來過五湖';
         collection.forEach(font => {
+          // 判斷 CJK 或英文字型，選擇對應預覽文字
+          const isCjk = _isCjkFont(font.name);
+          const previewText = isCjk ? zhPreviewText : EN_PREVIEW;
+
+          // 嘗試取得 Google Fonts 字型
+          let fontFamily = '';
+          const dbMatch = FONT_DB.find(f =>
+            f.zhName.toLowerCase() === font.name.toLowerCase() ||
+            f.enName.toLowerCase() === font.name.toLowerCase()
+          );
+          if (dbMatch?.gFont) {
+            _loadGFont(dbMatch.gFont);
+            fontFamily = _gFontFamily(dbMatch.gFont);
+          } else if (font.source === 'Google Fonts') {
+            const gParam = font.name.replace(/\s+/g, '+') + ':wght@400;700';
+            _loadGFont(gParam);
+            fontFamily = font.name;
+          }
+
           const card = document.createElement('div');
           card.className = 'font-card is-saved';
           card.innerHTML = `
+            <div class="font-collection-preview${fontFamily ? '' : ' no-gfont'}"
+                 style="${fontFamily ? `font-family:'${fontFamily}',sans-serif;` : ''}">
+              ${fontFamily ? previewText : '（需下載字型才能預覽）'}
+            </div>
             <div class="font-card-header">
               <div class="font-card-info">
                 <h4 class="font-card-name">${font.name}</h4>
@@ -2614,13 +2946,15 @@
                   <span class="font-tag font-tag-source">${font.source}</span>
                 </div>
               </div>
-              <button class="btn-icon btn-font-delete" title="移除收藏">
-                <i data-lucide="trash-2" size="15"></i>
-              </button>
             </div>
             <p class="font-card-reason">${font.reason}</p>
             ${font.queryFrom ? `<p class="font-card-from">查詢來源：${font.queryFrom}</p>` : ''}
-            ${font.link ? `<a href="${font.link}" target="_blank" rel="noopener" class="font-card-link"><i data-lucide="external-link" size="12"></i>查看字體</a>` : ''}`;
+            <div class="font-card-bottom">
+              ${font.link ? `<a href="${font.link}" target="_blank" rel="noopener" class="font-card-link"><i data-lucide="external-link" size="12"></i>查看字體</a>` : '<span></span>'}
+              <button class="btn-icon btn-font-delete" title="移除收藏">
+                <i data-lucide="trash-2" size="15"></i>
+              </button>
+            </div>`;
           card.querySelector('.btn-font-delete').addEventListener('click', () => {
             openConfirmModal(
               '移除收藏？',

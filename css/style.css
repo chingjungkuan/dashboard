@@ -2063,7 +2063,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   transition: border-color 0.2s, background 0.2s;
 }
 .font-card:hover { border-color: var(--color-border-hover); background: var(--color-surface-hover); }
-.font-card.is-saved { border-color: rgba(0, 240, 255, 0.15); }
+.font-card.is-saved { border-color: rgba(0, 240, 255, 0.15); display: flex; flex-direction: column; }
 
 .font-card-header {
   display: flex;
@@ -2141,6 +2141,213 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 0.8s linear infinite; display: inline-block; }
 
+/* ── 字體探索 2-column layout ── */
+.font-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-6);
+  flex-wrap: wrap;
+}
+
+.font-api-inline {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  background: rgba(20,20,25,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: var(--spacing-2) var(--spacing-4);
+  flex-shrink: 0;
+}
+.font-api-inline i { color: var(--color-muted-foreground); flex-shrink: 0; }
+.font-api-inline .font-api-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+}
+.font-api-inline .font-api-form {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+.font-api-input-sm {
+  width: 200px !important;
+  height: 34px;
+  font-size: var(--font-size-sm) !important;
+  padding: var(--spacing-1) var(--spacing-3) !important;
+}
+
+.font-view-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.font-search-card {
+  background: rgba(30,30,40,0.6);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 24px;
+  padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.font-db-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-muted-foreground);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* 收藏卡片頂部預覽 */
+.font-collection-preview {
+  background: #131314;
+  border-radius: calc(var(--radius-xl) - 1px) calc(var(--radius-xl) - 1px) 0 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: center;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: var(--color-foreground);
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: calc(-1 * var(--spacing-4)) calc(-1 * var(--spacing-5)) var(--spacing-3);
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  word-break: break-all;
+}
+.font-collection-preview.no-gfont {
+  font-style: italic;
+  font-size: var(--font-size-sm);
+  color: var(--color-muted-foreground);
+}
+
+/* DB grid 全寬，auto-fill */
+.font-db-col .font-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+/* 隱藏 inline API hint */
+.font-api-inline .font-api-hint { display: none !important; }
+
+/* 收藏卡片底部列 */
+.font-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: var(--spacing-2);
+}
+
+/* 收藏卡片刪除鈕 32x32 */
+.btn-font-delete { width: 32px !important; height: 32px !important; border-radius: 6px !important; }
+
+/* ── 字型資料庫 ── */
+.font-preview-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-3);
+}
+
+.font-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--spacing-3);
+}
+
+.font-filter-btn {
+  padding: 3px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.font-filter-btn:hover { border-color: var(--color-border-hover); color: var(--color-foreground); }
+.font-filter-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: #000; }
+
+.font-db-preview {
+  font-size: 1.45rem;
+  line-height: 1.5;
+  color: var(--color-foreground);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-3);
+  min-height: 2.2rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.font-db-preview.no-gfont {
+  color: var(--color-muted-foreground);
+  font-style: italic;
+  font-size: var(--font-size-sm);
+  line-height: 2.2rem;
+}
+
+.font-db-name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+}
+.font-db-name-row .font-card-name { margin: 0; }
+
+.font-db-en-name {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+  opacity: 0.65;
+  margin: 2px 0 var(--spacing-2);
+}
+
+.font-save-btn {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.font-save-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.font-save-btn.saved { background: rgba(0,240,255,0.1); border-color: rgba(0,240,255,0.3); color: var(--color-primary); }
+
+.font-tag-mac   { background: rgba(147,197,253,0.15); color: #93c5fd; }
+.font-tag-adobe { background: rgba(252,100,50,0.15);  color: #fc6432; }
+
+.font-db-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--spacing-6) 0;
+}
+
+@media (max-width: 900px) {
+  .font-view-body { grid-template-columns: 1fr; gap: var(--spacing-6); }
+  .font-view-header { flex-direction: column; align-items: flex-start; }
+  .font-api-inline { flex-wrap: wrap; }
+  .font-api-input-sm { width: 140px !important; }
+}
 @media (max-width: 767px) {
   .font-search-row { flex-direction: column; }
   .font-grid { grid-template-columns: 1fr; }
