@@ -2698,7 +2698,7 @@
             f.zhName.toLowerCase() === font.name.toLowerCase() ||
             f.enName.toLowerCase() === font.name.toLowerCase()
           );
-          if (_dbTypeFilter && dbEntry && !typeMatch(dbEntry.type)) return;
+          if (_dbTypeFilter && (!dbEntry || !typeMatch(dbEntry.type))) return;
           if (_dbLicenseFilter) {
             if (dbEntry) {
               const lic = dbEntry.license;
