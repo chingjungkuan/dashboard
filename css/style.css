@@ -247,7 +247,7 @@ main {
 .nav-item:hover { background: rgba(255,255,255,0.06); color: var(--color-foreground); }
 .nav-item.active {
   background: rgba(255,255,255,0.08);
-  color: var(--color-foreground);
+  color: var(--color-primary);
 }
 .nav-item.active svg { color: var(--color-primary); }
 .nav-item.nav-add { color: var(--color-muted-foreground); }
@@ -1911,16 +1911,46 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 /* Font type group label */
 .font-type-group-label {
-  width: 100%;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--color-muted-foreground);
   opacity: 0.45;
-  margin-top: var(--spacing-3);
   padding-left: 2px;
   display: block;
+}
+
+/* 英文篩選：結構化排版 */
+#font-filter-row-1 { display: block; margin-bottom: 0; }
+
+.font-filter-all-row { margin-bottom: 8px; }
+
+.font-filter-group-pair {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.font-filter-group-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.font-filter-group-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.font-filter-group-row:last-child { margin-bottom: 0; }
+
+.font-filter-group-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 /* Font filter 2-col grid */
@@ -1973,8 +2003,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   transition: all 0.2s;
 }
 .font-lang-btn.active {
-  background: var(--color-surface-hover);
-  color: var(--color-foreground);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-primary);
 }
 .font-lang-btn:hover:not(.active) { color: var(--color-foreground); }
 
@@ -2232,6 +2262,12 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   transition: background 0.2s;
 }
 .font-tag-style-edit:hover { background: rgba(0, 240, 255, 0.16); }
+.font-tag-style-edit.is-manual {
+  background: rgba(255, 0, 85, 0.08);
+  color: var(--color-destructive);
+  border-color: rgba(255, 0, 85, 0.3);
+}
+.font-tag-style-edit.is-manual:hover { background: rgba(255, 0, 85, 0.16); }
 
 .font-type-popover {
   margin-top: var(--spacing-2);
