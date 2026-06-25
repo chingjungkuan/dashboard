@@ -280,16 +280,11 @@
                   <span class="font-count-badge" id="font-db-count"></span>
                 </div>
                 <input type="text" class="form-input font-preview-input" id="font-preview-text" value="南去經三國，東來過五湖" maxlength="30" placeholder="輸入預覽文字">
-                <div class="font-filter-row" id="font-type-filter">
-                  <button class="font-filter-btn active" data-type="">全部</button>
-                  <button class="font-filter-btn" data-type="gothic">黑體</button>
-                  <button class="font-filter-btn" data-type="mincho">明體</button>
-                  <button class="font-filter-btn" data-type="round">圓體</button>
-                  <button class="font-filter-btn" data-type="handwrite">手寫</button>
-                  <button class="font-filter-btn" data-type="brush">毛筆</button>
-                  <button class="font-filter-btn" data-type="kai">楷體</button>
-                  <button class="font-filter-btn" data-type="display">特色</button>
+                <div class="font-lang-toggle" id="font-lang-toggle">
+                  <button class="font-lang-btn active" data-lang="zh">中文</button>
+                  <button class="font-lang-btn" data-lang="en">English</button>
                 </div>
+                <div class="font-filter-row" id="font-type-filter"></div>
                 <div class="font-filter-row" id="font-license-filter">
                   <button class="font-filter-btn active" data-license="">全部授權</button>
                   <button class="font-filter-btn" data-license="free">免費</button>
@@ -2445,7 +2440,7 @@
       // ════════════════════════════════════════════════
       // 字型資料庫
       // ════════════════════════════════════════════════
-      const FONT_DB = [
+      const FONT_DB_ZH = [
         // ── 黑體 ──
         { zhName:'思源黑體', enName:'Noto Sans TC', maker:'Google & Adobe', license:'free', type:'gothic', desc:'最廣泛使用的黑體，多種衍生字型皆由它改作', gFont:'Noto+Sans+TC:wght@400;700' },
         { zhName:'台北黑體', enName:'TaipeiSans TC Beta', maker:'翰字鑄造 JT Foundry', license:'free', type:'gothic', desc:'以思源黑體為基礎，適合繁體中文的印刷風格黑體', gFont:null },
@@ -2530,11 +2525,129 @@
         { zhName:'Reggae One', enName:'Reggae One', maker:'Fontworks', license:'free', type:'display', desc:'充滿活力與個性的裝飾字型', gFont:'Reggae+One' },
         { zhName:'懷訪体', enName:'id-kaihou', maker:'(source)', license:'adobe', type:'display', desc:'具有日系風格的飽滿字型', gFont:null },
         { zhName:'jf 金萱', enName:'jinxuan', maker:'justfont', license:'paid', type:'display', desc:'第一個群眾募資的中文字型，結合明體優雅與黑體清晰', gFont:null },
+      ].map(f => ({ lang: 'zh', ...f }));
+
+      const FONT_DB_EN = [
+        // ── Grotesk ──
+        { zhName:'Questrial', enName:'Questrial', lang:'en', maker:'Joe Prince', license:'free', type:'grotesk', desc:'Clean geometric grotesk with a single weight, great for minimalist design', gFont:'Questrial' },
+        { zhName:'Syne', enName:'Syne', lang:'en', maker:'Bonjour Monde', license:'free', type:'grotesk', desc:'Distinctive grotesk with unique character shapes, bold personality for display use', gFont:'Syne:wght@400;700' },
+        { zhName:'HK Grotesk', enName:'HK Grotesk', lang:'en', maker:'Hanken Design Co.', license:'free', type:'grotesk', desc:'Optimised for screen legibility, a friendly neutral grotesk', gFont:null },
+        { zhName:'Clash Display', enName:'Clash Display', lang:'en', maker:'Indian Type Foundry', license:'free', type:'grotesk', desc:'Variable grotesk with strong geometric structure, ideal for headlines', gFont:null },
+        { zhName:'Cabinet Grotesk', enName:'Cabinet Grotesk', lang:'en', maker:'Indian Type Foundry', license:'free', type:'grotesk', desc:'Variable weight grotesk with slightly quirky details and warmth', gFont:null },
+        { zhName:'Sporting Grotesque', enName:'Sporting Grotesque', lang:'en', maker:'Lucas Le Bihan', license:'free', type:'grotesk', desc:'Condensed grotesk with athletic feel, works great for impact headlines', gFont:null },
+        // ── Humanist ──
+        { zhName:'Inter', enName:'Inter', lang:'en', maker:'Rasmus Andersson', license:'free', type:'humanist', desc:'The go-to UI typeface — crisp, legible, and incredibly versatile', gFont:'Inter:wght@400;700' },
+        { zhName:'Lato', enName:'Lato', lang:'en', maker:'Łukasz Dziedzic', license:'free', type:'humanist', desc:'Warm humanist sans with a subtle classical structure, excellent for body text', gFont:'Lato:wght@400;700' },
+        { zhName:'Golos UI', enName:'Golos UI', lang:'en', maker:'Paratype', license:'free', type:'humanist', desc:'Modern humanist designed specifically for UI, high readability at small sizes', gFont:'Golos+Text:wght@400;700' },
+        { zhName:'Roboto', enName:'Roboto', lang:'en', maker:'Christian Robertson', license:'free', type:'humanist', desc:'Android default typeface — balanced, friendly, and widely supported', gFont:'Roboto:wght@400;700' },
+        { zhName:'Cabin', enName:'Cabin', lang:'en', maker:'Impallari Type', license:'free', type:'humanist', desc:'Humanist sans with a slightly condensed feel, approachable and modern', gFont:'Cabin:wght@400;700' },
+        { zhName:'Open Sans', enName:'Open Sans', lang:'en', maker:'Steve Matteson', license:'free', type:'humanist', desc:'Neutral yet friendly humanist, one of the most used web fonts ever', gFont:'Open+Sans:wght@400;700' },
+        { zhName:'Aileron', enName:'Aileron', lang:'en', maker:'Sora Sagano', license:'free', type:'humanist', desc:'Clean neo-grotesque with humanist proportions, free Helvetica alternative', gFont:null },
+        // ── Neo-Grotesque ──
+        { zhName:'Raleway', enName:'Raleway', lang:'en', maker:'Matt McInerney', license:'free', type:'neo-grotesque', desc:'Elegant thin weight neo-grotesque, perfect for fashion and luxury branding', gFont:'Raleway:wght@400;700' },
+        // ── Geometric ──
+        { zhName:'Poppins', enName:'Poppins', lang:'en', maker:'Indian Type Foundry', license:'free', type:'geometric', desc:'Perfectly circular geometric sans — popular, modern, and highly legible', gFont:'Poppins:wght@400;700' },
+        { zhName:'Jost', enName:'Jost', lang:'en', maker:'Owen Earl', license:'free', type:'geometric', desc:'Futura-inspired geometric with improved legibility for digital use', gFont:'Jost:wght@400;700' },
+        { zhName:'Josefin Sans', enName:'Josefin Sans', lang:'en', maker:'Santiago Orozco', license:'free', type:'geometric', desc:'Elegant thin geometric with Art Deco influences, great for fashion headers', gFont:'Josefin+Sans:wght@400;700' },
+        { zhName:'Manrope', enName:'Manrope', lang:'en', maker:'Mikhail Sharanda', license:'free', type:'geometric', desc:'Clean geometric-humanist hybrid, excellent for modern product UI', gFont:'Manrope:wght@400;700' },
+        { zhName:'Lexend', enName:'Lexend', lang:'en', maker:'Bonnie Shaver-Troup', license:'free', type:'geometric', desc:'Designed specifically to reduce visual stress and improve reading speed', gFont:'Lexend:wght@400;700' },
+        { zhName:'Poiret One', enName:'Poiret One', lang:'en', maker:'Denis Masharov', license:'free', type:'geometric', desc:'Art Deco geometric display face with single weight, refined and decorative', gFont:'Poiret+One' },
+        // ── Old Style Serif ──
+        { zhName:'EB Garamond', enName:'EB Garamond', lang:'en', maker:'Georg Duffner', license:'free', type:'old-style', desc:'Classic Garamond revival — timeless elegance for editorial and book design', gFont:'EB+Garamond:wght@400;700' },
+        { zhName:'Cormorant', enName:'Cormorant', lang:'en', maker:'Christian Thalmann', license:'free', type:'old-style', desc:'Extremely high contrast display serif based on Garamond, luxury and refined', gFont:'Cormorant:wght@400;700' },
+        { zhName:'Cardo', enName:'Cardo', lang:'en', maker:'David J. Perry', license:'free', type:'old-style', desc:'Classical serif designed for academic publishing, warm and scholarly', gFont:'Cardo' },
+        { zhName:'Quattrocento', enName:'Quattrocento', lang:'en', maker:'Impallari Type', license:'free', type:'old-style', desc:'Renaissance-inspired serif with low contrast, readable and elegant', gFont:'Quattrocento:wght@400;700' },
+        // ── Transitional Serif ──
+        { zhName:'Libre Baskerville', enName:'Libre Baskerville', lang:'en', maker:'Impallari Type', license:'free', type:'transitional', desc:'Web-optimised Baskerville revival — a workhorse for long-form reading', gFont:'Libre+Baskerville:wght@400;700' },
+        { zhName:'Libre Caslon Text', enName:'Libre Caslon Text', lang:'en', maker:'Impallari Type', license:'free', type:'transitional', desc:'Caslon revival tuned for screen — warm ink-trap details and high legibility', gFont:'Libre+Caslon+Text:wght@400;700' },
+        // ── Modern Serif ──
+        { zhName:'Bodoni Moda', enName:'Bodoni Moda', lang:'en', maker:'Owen Earl', license:'free', type:'modern-serif', desc:'Dramatic high-contrast Bodoni revival, extreme thin-thick contrast for display', gFont:'Bodoni+Moda:ital,opsz,wght@0,6..96,400..900' },
+        { zhName:'Libre Bodoni', enName:'Libre Bodoni', lang:'en', maker:'Impallari Type', license:'free', type:'modern-serif', desc:'More approachable Bodoni variant, works well at smaller sizes than originals', gFont:'Libre+Bodoni:wght@400;700' },
+        { zhName:'GFS Didot', enName:'GFS Didot', lang:'en', maker:'Greek Font Society', license:'free', type:'modern-serif', desc:'Greek revival of Didot — exquisite thin strokes, pure neoclassical elegance', gFont:'GFS+Didot' },
+        { zhName:'Vidaloka', enName:'Vidaloka', lang:'en', maker:'Viktoriya Grabowska', license:'free', type:'modern-serif', desc:'Distinctive display modern with bulgy serifs and high drama, great for titles', gFont:'Vidaloka' },
+        { zhName:'Old Standard TT', enName:'Old Standard TT', lang:'en', maker:'Alexey Kryukov', license:'free', type:'modern-serif', desc:'Academic serif with classical proportions, ideal for scholarly publications', gFont:'Old+Standard+TT:wght@400;700' },
+        // ── Slab Serif ──
+        { zhName:'Roboto Slab', enName:'Roboto Slab', lang:'en', maker:'Christian Robertson', license:'free', type:'slab', desc:'Slab companion to Roboto — sturdy, readable, pairs perfectly with Roboto', gFont:'Roboto+Slab:wght@400;700' },
+        { zhName:'Arvo', enName:'Arvo', lang:'en', maker:'Anton Koovit', license:'free', type:'slab', desc:'Geometric slab serif with balanced proportions, excellent for headlines and UI', gFont:'Arvo:wght@400;700' },
+        { zhName:'Aleo', enName:'Aleo', lang:'en', maker:'Alessio Laiso', license:'free', type:'slab', desc:'Contemporary slab with humanist touch, designed to complement Lato', gFont:'Aleo:wght@400;700' },
+        { zhName:'Bevan', enName:'Bevan', lang:'en', maker:'Vernon Adams', license:'free', type:'slab', desc:'Bold poster slab with strong visual impact, adapted from classic wood type', gFont:'Bevan' },
+        { zhName:'Alfa Slab One', enName:'Alfa Slab One', lang:'en', maker:'JM Solé', license:'free', type:'slab', desc:'Heavy display slab with dramatic ink traps, assertive poster personality', gFont:'Alfa+Slab+One' },
+        { zhName:'Hepta Slab', enName:'Hepta Slab', lang:'en', maker:'Mike LaGattuta', license:'free', type:'slab', desc:'Variable slab from hairline to ultra-black, extreme range in one font family', gFont:'Hepta+Slab:wght@400;700' },
+        // ── Script & Calligraphic ──
+        { zhName:'Dancing Script', enName:'Dancing Script', lang:'en', maker:'Impallari Type', license:'free', type:'script', desc:'Lively casual script with natural rhythm, great for friendly invitations', gFont:'Dancing+Script:wght@400;700' },
+        { zhName:'Pacifico', enName:'Pacifico', lang:'en', maker:'Vernon Adams', license:'free', type:'script', desc:'Retro surf-culture brush script, cheerful and unmistakably 60s California', gFont:'Pacifico' },
+        { zhName:'Sacramento', enName:'Sacramento', lang:'en', maker:'Astigmatic', license:'free', type:'script', desc:'Thin monoline copperplate script, delicate and elegant for luxury branding', gFont:'Sacramento' },
+        { zhName:'Lobster', enName:'Lobster', lang:'en', maker:'Pablo Impallari', license:'free', type:'script', desc:'Retro connected script with bold personality, instantly recognisable display face', gFont:'Lobster' },
+        { zhName:'Oleo Script', enName:'Oleo Script', lang:'en', maker:'Soytutype', license:'free', type:'script', desc:'Playful retro script reminiscent of 50s diner signage, warm and nostalgic', gFont:'Oleo+Script:wght@400;700' },
+        { zhName:'Yellowtail', enName:'Yellowtail', lang:'en', maker:'Astigmatic', license:'free', type:'script', desc:'Casual brush script with mixed upright and slanted characters, free-spirited', gFont:'Yellowtail' },
+        // ── Handwritten ──
+        { zhName:'Caveat', enName:'Caveat', lang:'en', maker:'Pablo Impallari', license:'free', type:'handwritten', desc:'Natural handwriting with variable weight support, authentic pen-on-paper feel', gFont:'Caveat:wght@400;700' },
+        { zhName:'Gochi Hand', enName:'Gochi Hand', lang:'en', maker:'Huerta Tipográfica', license:'free', type:'handwritten', desc:'Latin American comic-book handwriting style, playful and expressive', gFont:'Gochi+Hand' },
+        { zhName:'Gloria Hallelujah', enName:'Gloria Hallelujah', lang:'en', maker:'Kimberly Geswein', license:'free', type:'handwritten', desc:'Classic schoolkid handwriting, great for casual and educational contexts', gFont:'Gloria+Hallelujah' },
+        { zhName:'Itim', enName:'Itim', lang:'en', maker:'Cadson Demak', license:'free', type:'handwritten', desc:'Clean Thai-inspired handwriting, simple and globally friendly', gFont:'Itim' },
+        { zhName:'Patrick Hand', enName:'Patrick Hand', lang:'en', maker:'Patrick Wagesreiter', license:'free', type:'handwritten', desc:'Neat casual handwriting optimised for screen, highly legible informal style', gFont:'Patrick+Hand' },
+        // ── Brush ──
+        { zhName:'Caveat Brush', enName:'Caveat Brush', lang:'en', maker:'Pablo Impallari', license:'free', type:'brush', desc:'Rough brush variant of Caveat, more textured and spontaneous than the original', gFont:null },
+        // ── Blackletter ──
+        { zhName:'UnifrakturMaguntia', enName:'UnifrakturMaguntia', lang:'en', maker:'j. mach wust', license:'free', type:'blackletter', desc:'Traditional German Fraktur blackletter, authentic medieval manuscript feel', gFont:'UnifrakturMaguntia' },
+        // ── Elegant Display ──
+        { zhName:'Cinzel', enName:'Cinzel', lang:'en', maker:'Natanael Gama', license:'free', type:'elegant', desc:'Roman inscription-inspired caps-only display serif, monumental and architectural', gFont:'Cinzel:wght@400;700' },
+        { zhName:'Italiana', enName:'Italiana', lang:'en', maker:'Sorkin Type', license:'free', type:'elegant', desc:'High-contrast Italian old style with refined stroke modulation, pure elegance', gFont:'Italiana' },
+        { zhName:'Philosopher', enName:'Philosopher', lang:'en', maker:'Jovanny Lemonad', license:'free', type:'elegant', desc:'Understated old-style with calligraphic warmth, versatile for editorial use', gFont:'Philosopher:ital,wght@0,400;0,700;1,400' },
+        { zhName:'Bona Nova', enName:'Bona Nova', lang:'en', maker:'Mateusz Machalski', license:'free', type:'elegant', desc:'Humanist serif with calligraphic roots, balanced between classic and contemporary', gFont:'Bona+Nova:wght@400;700' },
+        { zhName:'Cormorant Garamond', enName:'Cormorant Garamond', lang:'en', maker:'Christian Thalmann', license:'free', type:'elegant', desc:'Exquisitely detailed Garamond revival with extreme contrast, closest free alternative to Kepler', gFont:'Cormorant+Garamond:wght@400;700' },
+        // ── Poster & Art Deco ──
+        { zhName:'Abril Fatface', enName:'Abril Fatface', lang:'en', maker:'TypeTogether', license:'free', type:'poster', desc:'Ultra-bold display serif inspired by 19th-century newspaper headlines, high impact', gFont:'Abril+Fatface' },
       ];
 
-      let _dbTypeFilter = '';
+      const FONT_DB = [...FONT_DB_ZH, ...FONT_DB_EN];
+
+      let _dbLangFilter   = 'zh';
+      let _dbTypeFilter   = '';
       let _dbLicenseFilter = '';
       const _loadedGFonts = new Set();
+
+      // Type button configs
+      const ZH_TYPE_BTNS = [
+        { label:'全部', type:'' }, { label:'黑體', type:'gothic' }, { label:'明體', type:'mincho' },
+        { label:'圓體', type:'round' }, { label:'手寫', type:'handwrite' }, { label:'毛筆', type:'brush' },
+        { label:'楷體', type:'kai' }, { label:'特色', type:'display' },
+      ];
+      const EN_TYPE_BTNS = [
+        { label:'全部', type:'' }, { label:'Grotesk', type:'grotesk' }, { label:'Humanist', type:'humanist' },
+        { label:'Geometric', type:'geometric' }, { label:'Serif', type:'serif' },
+        { label:'Slab', type:'slab' }, { label:'Script', type:'script' },
+        { label:'Brush', type:'brush' }, { label:'Display', type:'display-en' },
+      ];
+      const EN_TYPE_GROUPS = {
+        grotesk:     ['grotesk','neo-grotesque'],
+        humanist:    ['humanist'],
+        geometric:   ['geometric'],
+        serif:       ['old-style','transitional','modern-serif'],
+        slab:        ['slab'],
+        script:      ['script','handwritten'],
+        brush:       ['brush'],
+        'display-en':['blackletter','elegant','poster','display-en'],
+      };
+
+      const renderTypeFilter = () => {
+        const btns = _dbLangFilter === 'zh' ? ZH_TYPE_BTNS : EN_TYPE_BTNS;
+        const row  = document.getElementById('font-type-filter');
+        if (!row) return;
+        row.innerHTML = btns.map(b =>
+          `<button class="font-filter-btn${_dbTypeFilter === b.type ? ' active' : ''}" data-type="${b.type}">${b.label}</button>`
+        ).join('');
+      };
+
+      // IntersectionObserver for lazy-loading Google Fonts
+      const _fontObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const gParam = entry.target.dataset.gfont;
+          if (gParam) { _loadGFont(gParam); entry.target.style.fontFamily = `'${_gFontFamily(gParam)}',sans-serif`; }
+          _fontObserver.unobserve(entry.target);
+        });
+      }, { rootMargin: '200px' });
 
       const _isCjkFont = (name) => {
         if (/[一-鿿぀-ゟ゠-ヿ]/.test(name)) return true;
@@ -2566,8 +2679,17 @@
         if (!grid) return;
         const zhText = (document.getElementById('font-preview-text')?.value || '南去經三國，東來過五湖').trim() || '南去經三國，東來過五湖';
         grid.innerHTML = '';
+        renderTypeFilter();
 
-        // ── 1. 收藏卡片優先顯示（套用篩選） ──────────────────
+        const isEnMode = _dbLangFilter === 'en';
+
+        const typeMatch = (fontType) => {
+          if (!_dbTypeFilter) return true;
+          if (!isEnMode) return fontType === _dbTypeFilter;
+          return (EN_TYPE_GROUPS[_dbTypeFilter] || [_dbTypeFilter]).includes(fontType);
+        };
+
+        // ── 1. 收藏卡片（套用篩選，語言不限） ──────────────────
         const collection = appData.fontCollection || [];
         const shownKeys  = new Set();
 
@@ -2576,9 +2698,7 @@
             f.zhName.toLowerCase() === font.name.toLowerCase() ||
             f.enName.toLowerCase() === font.name.toLowerCase()
           );
-          // type 篩選
-          if (_dbTypeFilter && dbEntry && dbEntry.type !== _dbTypeFilter) return;
-          // license 篩選
+          if (_dbTypeFilter && dbEntry && !typeMatch(dbEntry.type)) return;
           if (_dbLicenseFilter) {
             if (dbEntry) {
               const lic = dbEntry.license;
@@ -2594,21 +2714,16 @@
           }
 
           shownKeys.add(font.name.toLowerCase());
-
-          let fontFamily = '';
-          if (dbEntry?.gFont) { _loadGFont(dbEntry.gFont); fontFamily = _gFontFamily(dbEntry.gFont); }
-          else if (font.source === 'Google Fonts') {
-            const p = font.name.replace(/\s+/g, '+') + ':wght@400;700';
-            _loadGFont(p); fontFamily = font.name;
-          }
-          const pText = fontFamily ? (_isCjkFont(font.name) ? zhText : EN_PREVIEW) : '';
+          const gParam = dbEntry?.gFont || (font.source === 'Google Fonts' ? font.name.replace(/\s+/g, '+') + ':wght@400;700' : null);
+          const isCjk  = _isCjkFont(font.name);
+          const pText  = isCjk ? zhText : EN_PREVIEW;
 
           const card = document.createElement('div');
           card.className = 'font-card is-saved';
           card.innerHTML = `
-            <div class="font-collection-preview${fontFamily ? '' : ' no-gfont'}"
-                 style="${fontFamily ? `font-family:'${fontFamily}',sans-serif;` : ''}">
-              ${fontFamily ? pText : '（需下載字型才能預覽）'}
+            <div class="font-collection-preview${gParam ? '' : ' no-gfont'}"
+                 ${gParam ? `data-gfont="${gParam}"` : ''}>
+              ${gParam ? pText : '（需下載字型才能預覽）'}
             </div>
             <div class="font-card-header">
               <div class="font-card-info">
@@ -2626,6 +2741,7 @@
               <button class="btn-icon btn-font-delete" title="移除收藏"><i data-lucide="trash-2" size="15"></i></button>
             </div>`;
 
+          if (gParam) _fontObserver.observe(card.querySelector('[data-gfont]'));
           card.querySelector('.btn-font-delete').addEventListener('click', () => {
             openConfirmModal('移除收藏？',
               `確定要從收藏中移除「<strong>${font.name}</strong>」嗎？`,
@@ -2641,37 +2757,34 @@
           grid.appendChild(card);
         });
 
-        // ── 2. DB 卡片（套用篩選，跳過已收藏） ────────────────
+        // ── 2. DB 卡片（套用 lang + 篩選，跳過已收藏） ─────────
         const dbList = FONT_DB.filter(f => {
           if (shownKeys.has(f.zhName.toLowerCase())) return false;
-          const typeOk = !_dbTypeFilter || f.type === _dbTypeFilter;
+          if (f.lang !== _dbLangFilter) return false;
+          if (!typeMatch(f.type)) return false;
           const lic = f.license;
           const licOk = !_dbLicenseFilter ||
             lic === _dbLicenseFilter ||
             (_dbLicenseFilter === 'mac'   && lic === 'mac-adobe') ||
             (_dbLicenseFilter === 'adobe' && lic === 'mac-adobe');
-          return typeOk && licOk;
+          return licOk;
         });
 
         countEl.textContent = shownKeys.size + dbList.length;
-        const savedNames = new Set(collection.map(f => f.name.toLowerCase()));
+        const previewText = isEnMode ? EN_PREVIEW : zhText;
 
         dbList.forEach(font => {
-          if (font.gFont) _loadGFont(font.gFont);
-          const family  = _gFontFamily(font.gFont);
-          const isSaved = savedNames.has(font.zhName.toLowerCase());
-
           const card = document.createElement('div');
           card.className = 'font-card';
           card.innerHTML = `
-            <div class="font-db-preview${family ? '' : ' no-gfont'}"
-                 style="${family ? `font-family:'${family}',sans-serif;` : ''}">
-              ${family ? zhText : '（需下載字型才能預覽）'}
+            <div class="font-db-preview${font.gFont ? '' : ' no-gfont'}"
+                 ${font.gFont ? `data-gfont="${font.gFont}"` : ''}>
+              ${font.gFont ? previewText : '（需下載字型才能預覽）'}
             </div>
             <div class="font-db-name-row">
               <div>
                 <h4 class="font-card-name">${font.zhName}</h4>
-                <p class="font-db-en-name">${font.enName}</p>
+                ${font.zhName !== font.enName ? `<p class="font-db-en-name">${font.enName}</p>` : ''}
               </div>
             </div>
             <div class="font-card-tags">
@@ -2679,6 +2792,7 @@
               <span class="font-tag font-tag-source">${font.maker}</span>
             </div>
             <p class="font-card-reason">${font.desc}</p>`;
+          if (font.gFont) _fontObserver.observe(card.querySelector('[data-gfont]'));
           grid.appendChild(card);
         });
 
@@ -2719,7 +2833,18 @@
           // 預覽文字即時更新
           document.getElementById('font-preview-text').addEventListener('input', () => renderFontDB());
 
-          // 分類篩選
+          // 語言切換
+          document.getElementById('font-lang-toggle').addEventListener('click', e => {
+            const btn = e.target.closest('.font-lang-btn');
+            if (!btn) return;
+            document.querySelectorAll('#font-lang-toggle .font-lang-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            _dbLangFilter  = btn.dataset.lang;
+            _dbTypeFilter  = '';
+            renderFontDB();
+          });
+
+          // 分類篩選（動態按鈕，用 event delegation）
           document.getElementById('font-type-filter').addEventListener('click', e => {
             const btn = e.target.closest('.font-filter-btn');
             if (!btn) return;
