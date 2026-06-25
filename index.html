@@ -2619,6 +2619,30 @@
         { label:'Slab', type:'slab' }, { label:'Script', type:'script' },
         { label:'Brush', type:'brush' }, { label:'Display', type:'display-en' },
       ];
+      // type → lang 對照，供收藏字型設定分類後自動推斷語言
+      const TYPE_LANG_MAP = {
+        gothic:'zh', mincho:'zh', round:'zh', handwrite:'zh', brush:'zh', kai:'zh', display:'zh',
+        grotesk:'en', humanist:'en', 'neo-grotesque':'en', geometric:'en',
+        'old-style':'en', transitional:'en', 'modern-serif':'en', slab:'en',
+        script:'en', handwritten:'en', blackletter:'en', elegant:'en', poster:'en', 'display-en':'en',
+      };
+      // 給 dropdown 用的完整選項
+      const ALL_TYPE_OPTIONS = [
+        { label:'— 中文 —', type:'', disabled:true },
+        { label:'黑體', type:'gothic' }, { label:'明體', type:'mincho' }, { label:'圓體', type:'round' },
+        { label:'手寫', type:'handwrite' }, { label:'毛筆', type:'brush' }, { label:'楷體', type:'kai' },
+        { label:'特色', type:'display' },
+        { label:'— English —', type:'', disabled:true },
+        { label:'Grotesk', type:'grotesk' }, { label:'Neo-Grotesque', type:'neo-grotesque' },
+        { label:'Humanist', type:'humanist' }, { label:'Geometric', type:'geometric' },
+        { label:'Old Style Serif', type:'old-style' }, { label:'Transitional', type:'transitional' },
+        { label:'Modern Serif', type:'modern-serif' }, { label:'Slab', type:'slab' },
+        { label:'Script', type:'script' }, { label:'Handwritten', type:'handwritten' },
+        { label:'Brush', type:'brush-en' }, { label:'Blackletter', type:'blackletter' },
+        { label:'Elegant', type:'elegant' }, { label:'Poster', type:'poster' },
+        { label:'Display', type:'display-en' },
+      ];
+
       const EN_TYPE_GROUPS = {
         grotesk:     ['grotesk','neo-grotesque'],
         humanist:    ['humanist'],
@@ -2698,7 +2722,10 @@
             f.zhName.toLowerCase() === font.name.toLowerCase() ||
             f.enName.toLowerCase() === font.name.toLowerCase()
           );
-          if (_dbTypeFilter && (!dbEntry || !typeMatch(dbEntry.type))) return;
+          const effectiveType = dbEntry ? dbEntry.type : (font.styleType || '');
+          const effectiveLang = dbEntry ? dbEntry.lang : (font.styleLang || null);
+          if (effectiveLang && effectiveLang !== _dbLangFilter) return;
+          if (_dbTypeFilter && (!effectiveType || !typeMatch(effectiveType))) return;
           if (_dbLicenseFilter) {
             if (dbEntry) {
               const lic = dbEntry.license;
@@ -2718,6 +2745,10 @@
           const isCjk  = _isCjkFont(font.name);
           const pText  = isCjk ? zhText : EN_PREVIEW;
 
+          const styleLabel = !dbEntry
+            ? (ALL_TYPE_OPTIONS.find(o => o.type === font.styleType)?.label || '')
+            : null;
+
           const card = document.createElement('div');
           card.className = 'font-card is-saved';
           card.innerHTML = `
@@ -2731,6 +2762,7 @@
                 <div class="font-card-tags">
                   <span class="font-tag font-tag-${font.type === '免費' ? 'free' : 'paid'}">${font.type}</span>
                   <span class="font-tag font-tag-source">${font.source}</span>
+                  ${!dbEntry ? `<button class="font-tag font-tag-style-edit" title="設定風格分類">${styleLabel || '＋ 設定分類'}</button>` : ''}
                 </div>
               </div>
             </div>
@@ -2739,9 +2771,39 @@
             <div class="font-card-bottom">
               ${font.link ? `<a href="${font.link}" target="_blank" rel="noopener" class="font-card-link"><i data-lucide="external-link" size="12"></i>查看字體</a>` : '<span></span>'}
               <button class="btn-icon btn-font-delete" title="移除收藏"><i data-lucide="trash-2" size="15"></i></button>
-            </div>`;
+            </div>
+            ${!dbEntry ? `<div class="font-type-popover" style="display:none;">
+              <select class="font-type-select form-input">
+                <option value="">選擇風格分類…</option>
+                ${ALL_TYPE_OPTIONS.filter(o => !o.disabled && o.type).map(o =>
+                  `<option value="${o.type}"${font.styleType === o.type ? ' selected' : ''}>${o.label}</option>`
+                ).join('')}
+              </select>
+            </div>` : ''}`;
 
           if (gParam) _fontObserver.observe(card.querySelector('[data-gfont]'));
+
+          if (!dbEntry) {
+            const editBtn = card.querySelector('.font-tag-style-edit');
+            const popover = card.querySelector('.font-type-popover');
+            const select  = card.querySelector('.font-type-select');
+            editBtn?.addEventListener('click', e => {
+              e.stopPropagation();
+              popover.style.display = popover.style.display === 'none' ? '' : 'none';
+            });
+            select?.addEventListener('change', async () => {
+              const chosen = select.value;
+              font.styleType = chosen;
+              font.styleLang = TYPE_LANG_MAP[chosen] || '';
+              const idx = appData.fontCollection.findIndex(f => f.id === font.id);
+              if (idx > -1) appData.fontCollection[idx] = font;
+              popover.style.display = 'none';
+              renderFontDB();
+              await saveState();
+              showToast(`已設定「${font.name}」的分類`, 'success');
+            });
+          }
+
           card.querySelector('.btn-font-delete').addEventListener('click', () => {
             openConfirmModal('移除收藏？',
               `確定要從收藏中移除「<strong>${font.name}</strong>」嗎？`,
@@ -3013,6 +3075,8 @@
           reason: font.reason,
           link: font.link || '',
           queryFrom,
+          styleType: '',
+          styleLang: '',
           addedAt: new Date().toISOString()
         });
         renderFontDB();
