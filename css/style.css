@@ -340,11 +340,10 @@ main {
 }
 
 .dashboard-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Instrument Serif', serif;
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 36px;
-  text-transform: capitalize;
   color: #FFF;
   margin: 0;
   background: none;
@@ -460,9 +459,9 @@ main {
 }
 
 .category-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Instrument Serif', serif;
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 400;
   margin: 0;
   background: linear-gradient(135deg, #fff, #aaa);
   -webkit-background-clip: text;
