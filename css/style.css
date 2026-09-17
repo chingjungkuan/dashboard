@@ -157,9 +157,9 @@ main {
 }
 
 .dashboard-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Instrument Serif', serif;
   font-size: 2.5rem;
-  font-weight: 600;
+  font-weight: 400;
   margin-bottom: 0.5rem;
   background: linear-gradient(180deg, #FFFFFF 0%, #A0A0A0 100%);
   -webkit-background-clip: text;
@@ -274,9 +274,9 @@ main {
 }
 
 .category-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Instrument Serif', serif;
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 400;
   margin: 0;
   background: linear-gradient(135deg, #fff, #aaa);
   -webkit-background-clip: text;
@@ -525,6 +525,9 @@ main {
   position: relative;
   outline: none;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 .calendar-cell:hover:not(.empty):not(.out-of-range) {
