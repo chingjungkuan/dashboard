@@ -1869,11 +1869,69 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   display: flex;
   flex-direction: column;
 }
+/* Style info tabs */
+.style-info-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-2) var(--spacing-6) 0;
+  position: sticky;
+  top: 0;
+  background: var(--color-overlay);
+  z-index: 1;
+}
+.style-info-tab {
+  padding: 8px 16px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-muted-foreground);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.style-info-tab.active {
+  color: var(--color-foreground);
+  border-bottom-color: var(--color-primary);
+}
+.style-info-tab:hover:not(.active) { color: var(--color-foreground); }
+
 .style-info-item {
   padding: var(--spacing-4) var(--spacing-6);
   border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-5);
 }
 .style-info-item:last-child { border-bottom: none; }
+.style-info-content { flex: 1; min-width: 0; }
+.style-info-font-preview {
+  width: 160px;
+  flex-shrink: 0;
+  text-align: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-3) var(--spacing-2);
+  background: rgba(255,255,255,0.02);
+}
+.style-info-font-sample {
+  font-size: 1.5rem;
+  color: var(--color-foreground);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.style-info-font-name {
+  font-size: 10px;
+  color: var(--color-muted-foreground);
+  margin-top: var(--spacing-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .style-info-header {
   display: flex;
   align-items: baseline;
@@ -2477,6 +2535,24 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 .font-filter-btn:hover { border-color: var(--color-border-hover); color: var(--color-foreground); }
 .font-filter-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: #000; }
+
+.gf-preview {
+  cursor: pointer;
+  position: relative;
+  transition: opacity 0.15s;
+}
+.gf-preview:hover { opacity: 0.75; }
+.gf-preview::after {
+  content: '↗';
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 11px;
+  color: var(--color-primary);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.gf-preview:hover::after { opacity: 1; }
 
 .font-db-preview {
   font-size: 1.45rem;

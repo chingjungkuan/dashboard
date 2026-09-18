@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Lucy's">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="apple-touch-icon" href="image/img_avatar.jpg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2946,25 +2947,59 @@
         ]
       };
 
-      const openStyleInfoModal = () => {
-        const defs = STYLE_DEFS[_dbLangFilter] || STYLE_DEFS.zh;
-        const title = _dbLangFilter === 'en' ? 'English Font Style Guide' : '中文字型風格說明';
-        document.getElementById('style-info-title').textContent = title;
-        const body = document.getElementById('style-info-body');
-        body.innerHTML = defs.map(s => `
-          <div class="style-info-item">
-            <div class="style-info-header">
-              <span class="style-info-name">${s.name}</span>
-              ${s.zh ? `<span class="style-info-zh">${s.zh}</span>` : ''}
-              ${s.en ? `<span class="style-info-en">${s.en}</span>` : ''}
-            </div>
-            <p class="style-info-desc">${s.desc}</p>
-          </div>`).join('');
-        document.getElementById('modal-style-info').classList.add('active');
-        lucide.createIcons();
+      let _styleInfoLang = 'zh';
+
+      const _getPreviewFont = (type) => {
+        const candidates = FONT_DB.filter(f => f.type === type && f.lang === _styleInfoLang && f.gFont);
+        if (!candidates.length) return null;
+        return candidates[Math.floor(Math.random() * candidates.length)];
       };
 
-      // btn-font-style-info listener is added dynamically in renderTypeFilter
+      const renderStyleInfoBody = () => {
+        const defs = STYLE_DEFS[_styleInfoLang] || STYLE_DEFS.zh;
+        const isZh = _styleInfoLang === 'zh';
+        document.getElementById('style-info-body').innerHTML =
+          `<div class="style-info-tabs">
+            <button class="style-info-tab${isZh ? ' active' : ''}" data-lang="zh">中文字型</button>
+            <button class="style-info-tab${!isZh ? ' active' : ''}" data-lang="en">English</button>
+          </div>` +
+          defs.map(s => {
+            const font = _getPreviewFont(s.type);
+            if (font) _loadGFont(font.gFont);
+            const family = font ? _gFontFamily(font.gFont) : '';
+            const sample = isZh ? '南去經三國' : 'Typography';
+            return `
+            <div class="style-info-item">
+              <div class="style-info-content">
+                <div class="style-info-header">
+                  <span class="style-info-name">${s.name}</span>
+                  ${s.zh ? `<span class="style-info-zh">${s.zh}</span>` : ''}
+                  ${s.en ? `<span class="style-info-en">${s.en}</span>` : ''}
+                </div>
+                <p class="style-info-desc">${s.desc}</p>
+              </div>
+              ${family ? `<div class="style-info-font-preview">
+                <div class="style-info-font-sample" style="font-family:'${family}',sans-serif;">${sample}</div>
+                <div class="style-info-font-name">${font.zhName}</div>
+              </div>` : ''}
+            </div>`;
+          }).join('');
+
+        document.querySelectorAll('.style-info-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            _styleInfoLang = btn.dataset.lang;
+            renderStyleInfoBody();
+          });
+        });
+      };
+
+      const openStyleInfoModal = () => {
+        document.getElementById('style-info-title').textContent = '字型風格說明';
+        renderStyleInfoBody();
+        document.getElementById('modal-style-info').classList.add('active');
+      };
+
+      document.getElementById('btn-font-style-info').addEventListener('click', openStyleInfoModal);
       document.getElementById('btn-style-info-close').addEventListener('click', () => {
         document.getElementById('modal-style-info').classList.remove('active');
       });
@@ -3237,9 +3272,11 @@
           const dbSpecimen = !font.gFont ? (font.specimen || appData.fontSpecimens?.[font.enName] || '') : '';
           const card = document.createElement('div');
           card.className = 'font-card';
+          const gfFamily = font.gFont ? _gFontFamily(font.gFont) : '';
+          const gfUrl = gfFamily ? `https://fonts.google.com/specimen/${gfFamily.replace(/\s+/g,'+')}` : '';
           card.innerHTML = `
             ${font.gFont
-              ? `<div class="font-db-preview" data-gfont="${font.gFont}">${previewText}</div>`
+              ? `<div class="font-db-preview gf-preview" data-gfont="${font.gFont}" data-gfurl="${gfUrl}" title="在 Google Fonts 查看">${previewText}</div>`
               : dbSpecimen
                 ? `<div class="font-db-preview has-specimen"><img src="${dbSpecimen}" class="font-specimen-img" loading="lazy" alt="specimen"></div>`
                 : ''}
@@ -3316,6 +3353,12 @@
           document.getElementById('btn-font-search').addEventListener('click', searchSimilarFonts);
           document.getElementById('font-search-input').addEventListener('keydown', e => {
             if (e.key === 'Enter') searchSimilarFonts();
+          });
+
+          // GF 預覽點擊 → 開 Google Fonts（只加一次）
+          document.getElementById('font-db-grid').addEventListener('click', e => {
+            const preview = e.target.closest('[data-gfurl]');
+            if (preview?.dataset.gfurl) window.open(preview.dataset.gfurl, '_blank', 'noopener');
           });
 
           // 預覽文字即時更新
@@ -3406,8 +3449,8 @@
 使用者輸入：「${fontName}」
 
 請先判斷這是：
-A) 字體名稱（如 Helvetica、Kepler Std、思源黑體）→ 推薦 5 個視覺風格相似的字體
-B) 風格描述（如「復古海報感」「乾淨現代的無襯線」）→ 從以下資料庫優先推薦符合的字體，不足再補充庫外免費字體
+A) 字體名稱（如 Helvetica、Kepler Std、思源黑體）→ 推薦最多 10 個視覺風格相似的字體
+B) 風格描述（如「復古海報感」「乾淨現代的無襯線」）→ 從以下資料庫優先推薦符合的字體，最多 10 個，不足再補充庫外免費字體
 
 資料庫字型清單：${dbNames}
 
